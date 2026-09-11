@@ -115,19 +115,41 @@
 
     .page-title { font-size: 28px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #fff; margin-bottom: 30px; }
     .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-    .category-list { display: flex; flex-direction: column; gap: 10px; max-height: none; overflow: visible; }
+    .category-list { display: flex; flex-direction: column; gap: 10px; max-height: none; overflow: visible; padding-left: 40px; }
     .category-pill {
       background: var(--color-crema); border-radius: 60px; padding: 14px 24px;
       display: flex; justify-content: space-between; align-items: center;
       font-weight: 700; font-size: 18px; color: var(--color-oscuro);
-      cursor: grab; user-select: none;
+      user-select: none;
+      position: relative;
+      min-height: 56px;
     }
-    .category-pill:active { cursor: grabbing; }
+    .category-pill .drag-handle {
+      position: absolute;
+      left: -40px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 52px;
+      height: 52px;
+      background: var(--color-oscuro);
+      color: var(--color-crema);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      touch-action: none;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .category-pill .drag-handle:active { cursor: grabbing; }
+    .category-pill .drag-handle i { font-size: 22px; line-height: 1; pointer-events: none; }
     .category-pill .name { text-transform: capitalize; }
     .category-pill .amount { font-weight: 700; }
     .category-pill .amount.positive { color: var(--color-oscuro); }
     .category-pill .amount.negative { color: var(--color-naranja-hover); }
     .sortable-ghost { opacity: 0.4; background: #d4d0c0; }
+    .sortable-chosen { box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
 
     .balance-cards { display: flex; flex-direction: column; gap: 20px; }
     .card-balance { background: var(--color-crema); border-radius: 40px; padding: 20px 28px; color: var(--color-oscuro); }
@@ -350,7 +372,10 @@
       .account-card .real-value { font-size: 22px; }
       .account-card .real-value input { font-size: 22px; }
       .card-loans .value { font-size: 26px; }
-      .category-pill { font-size: 16px; padding: 12px 18px; }
+      .category-list { padding-left: 44px; }
+      .category-pill { font-size: 15px; padding: 12px 18px; min-height: 52px; }
+      .category-pill .drag-handle { width: 46px; height: 46px; left: -42px; }
+      .category-pill .drag-handle i { font-size: 20px; }
       .movement-pill { flex-direction: column; align-items: stretch; gap: 6px; padding: 12px 16px; }
       .movement-pill .left-group { order: 1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%; }
       .movement-pill .left-group .cat { font-size: 16px; font-weight: 700; }
@@ -1451,6 +1476,7 @@
         const sign = val >= 0 ? '' : '-';
         const abs = Math.abs(val).toFixed(2).replace('.', ',');
         pill.innerHTML = `
+          <span class="drag-handle" title="Mantener presionado para mover"><i class="bi bi-diamond"></i></span>
           <span class="name">${key}</span>
           <span class="amount ${val >= 0 ? 'positive' : 'negative'}">${sign}$${abs}</span>
         `;
@@ -1460,7 +1486,12 @@
       if (sortableInstance) { sortableInstance.destroy(); sortableInstance = null; }
       if (listContainer.children.length > 1) {
         sortableInstance = new Sortable(listContainer, {
-          animation: 150, handle: '.category-pill', ghostClass: 'sortable-ghost',
+          animation: 150,
+          handle: '.drag-handle',
+          ghostClass: 'sortable-ghost',
+          chosenClass: 'sortable-chosen',
+          delayOnTouchOnly: 0,
+          touchStartThreshold: 3,
           onEnd: async function(evt) {
             const items = listContainer.querySelectorAll('.category-pill');
             const ids = [];
