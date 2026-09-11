@@ -2,7 +2,7 @@
 // Service Worker para VICEL Finanzas
 // ============================================================
 
-const CACHE_NAME = 'vicel-finanzas-v2';
+const CACHE_NAME = 'vicel-finanzas-v3';
 
 const PRECACHE_URLS = [
   './',
