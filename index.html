@@ -122,28 +122,13 @@
       min-height: 56px;
     }
     .category-pill .drag-handle {
-      position: absolute;
-      left: -58px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 48px;
-      height: 48px;
-      background: var(--color-naranja);
-      color: var(--color-crema);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: grab;
-      touch-action: none;
-      flex-shrink: 0;
-      -webkit-tap-highlight-color: transparent;
+      position: absolute; left: -58px; top: 50%; transform: translateY(-50%);
+      width: 48px; height: 48px; background: var(--color-naranja); color: var(--color-crema);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      cursor: grab; touch-action: none; flex-shrink: 0; -webkit-tap-highlight-color: transparent;
       transition: transform 0.15s ease;
     }
-    .category-pill .drag-handle:active {
-      cursor: grabbing;
-      transform: translateY(-50%) scale(0.94);
-    }
+    .category-pill .drag-handle:active { cursor: grabbing; transform: translateY(-50%) scale(0.94); }
     .category-pill .drag-handle i { font-size: 22px; line-height: 1; pointer-events: none; }
     .category-pill .name { text-transform: capitalize; }
     .category-pill .amount { font-weight: 700; }
@@ -274,10 +259,10 @@
     .movement-pill .right-group .actions .btn-icon:hover { background: rgba(0,0,0,0.08); color: #1A1A1A; }
     .movement-pill .right-group .actions .btn-icon.danger:hover { color: #dc3545; }
 
-    /* ===== PRÉSTAMOS: nueva estructura común PC y móvil ===== */
+    /* ===== PRÉSTAMOS: nueva estructura ===== */
     .loan-pill {
       background: var(--color-crema);
-      border-radius: 60px;
+      border-radius: 28px;
       padding: 14px 28px;
       color: var(--color-oscuro);
       font-weight: 600;
@@ -438,58 +423,25 @@
       }
       .movement-pill .right-group .actions .btn-icon:active { background: rgba(0,0,0,0.08); }
 
-      /* Préstamos: misma estructura que PC, tamaños ligeramente menores */
+      /* Préstamos: misma estructura y misma forma */
       .loan-pill {
         padding: 14px 20px;
         border-radius: 28px;
         gap: 4px;
       }
-      .loan-pill .loan-header {
-        align-items: flex-start;
-        gap: 8px;
-      }
-      .loan-pill .loan-who {
-        gap: 8px;
-        flex: 1;
-        min-width: 0;
-      }
-      .loan-pill .loan-who .person {
-        font-size: 16px;
-        letter-spacing: 0.3px;
-        line-height: 1.2;
-      }
-      .loan-pill .loan-who .account-badge {
-        font-size: 10px;
-        padding: 3px 11px;
-        letter-spacing: 0.5px;
-      }
-      .loan-pill .amount {
-        font-size: 20px;
-        font-weight: 800;
-        flex-shrink: 0;
-      }
-      .loan-pill .loan-desc {
-        font-size: 14px;
-        line-height: 1.35;
-        color: #5a5647;
-      }
-      .loan-pill .loan-footer {
-        gap: 8px;
-        align-items: center;
-      }
+      .loan-pill .loan-header { align-items: flex-start; gap: 8px; }
+      .loan-pill .loan-who { gap: 8px; flex: 1; min-width: 0; }
+      .loan-pill .loan-who .person { font-size: 16px; letter-spacing: 0.3px; line-height: 1.2; }
+      .loan-pill .loan-who .account-badge { font-size: 10px; padding: 3px 11px; letter-spacing: 0.5px; }
+      .loan-pill .amount { font-size: 20px; font-weight: 800; flex-shrink: 0; }
+      .loan-pill .loan-desc { font-size: 14px; line-height: 1.35; color: #5a5647; }
+      .loan-pill .loan-footer { gap: 8px; align-items: center; }
       .loan-pill .date { font-size: 13px; color: #5a5647; }
       .loan-pill .actions { gap: 2px; }
       .loan-pill .actions .btn-icon {
-        padding: 6px 8px;
-        font-size: 18px;
-        min-width: 38px;
-        min-height: 38px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #5a5a4a;
-        background: transparent;
-        border-radius: 30px;
+        padding: 6px 8px; font-size: 18px; min-width: 38px; min-height: 38px;
+        display: flex; align-items: center; justify-content: center;
+        color: #5a5a4a; background: transparent; border-radius: 30px;
         -webkit-tap-highlight-color: transparent;
       }
       .loan-pill .actions .btn-icon:active { background: rgba(0,0,0,0.08); }
@@ -962,9 +914,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // ============================================================
-    // 1. CONFIGURACIÓN INDEXEDDB
-    // ============================================================
     const db = new Dexie('FinanzasDB');
     db.version(12).stores({
       categories: '++id, nombre, esPredeterminado, color, oculta, orden',
@@ -1053,9 +1002,6 @@
       }
     });
 
-    // ============================================================
-    // 2. GLOBALES Y UTILIDADES
-    // ============================================================
     let currentMonth = new Date().getMonth();
     let currentYear = new Date().getFullYear();
     let chartInstance = null;
@@ -1086,9 +1032,6 @@
       return sign + abs.toFixed(2).replace('.', ',') + '$';
     }
 
-    // ============================================================
-    // 3. AUTENTICACIÓN CON GOOGLE
-    // ============================================================
     const CLIENT_ID = '312694298965-j8kbfete84pqsfetfbms0hic84mukp6h.apps.googleusercontent.com';
     const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
@@ -1111,14 +1054,12 @@
       mainContent.style.display = 'block';
       setTimeout(() => { if (chartInstance) chartInstance.resize(); }, 300);
     }
-
     function showLanding() {
       landingPage.classList.remove('hidden');
       mainContent.style.display = 'none';
       document.getElementById('sidebar').classList.remove('open');
       document.getElementById('sidebarOverlay').classList.remove('active');
     }
-
     function initGoogleAuth() {
       try {
         if (typeof google === 'undefined' || !google.accounts) {
@@ -1126,8 +1067,7 @@
           return;
         }
         tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: CLIENT_ID,
-          scope: SCOPES,
+          client_id: CLIENT_ID, scope: SCOPES,
           callback: (resp) => {
             if (resp.error) { console.error('Error al obtener token:', resp); logout(); return; }
             accessToken = resp.access_token;
@@ -1142,27 +1082,23 @@
         });
       } catch (e) { console.error('Error al inicializar Google Auth:', e); }
     }
-
     function scheduleTokenRefresh(expiresIn) {
       const refreshMs = (expiresIn - 300) * 1000;
       if (refreshMs > 0) {
         setTimeout(() => { if (accessToken && tokenClient) tokenClient.requestAccessToken({ prompt: '' }); }, refreshMs);
       }
     }
-
     function loginWithGoogle() {
       if (!tokenClient) initGoogleAuth();
       if (!tokenClient) { alert('La autenticación con Google no está disponible. Intenta con "Iniciar prueba".'); return; }
       tokenClient.requestAccessToken({ prompt: 'consent' });
     }
-
     function logout() {
       accessToken = null; tokenExpiry = null; driveFileId = null; isGoogleSession = false;
       updateAuthUI(false);
       if (google.accounts && google.accounts.oauth2) { try { google.accounts.oauth2.revoke(accessToken); } catch (e) {} }
       showLanding();
     }
-
     function updateAuthUI(loggedIn) {
       if (loggedIn) {
         authButtons.style.display = 'none';
@@ -1176,9 +1112,6 @@
       }
     }
 
-    // ============================================================
-    // 4. GOOGLE DRIVE
-    // ============================================================
     async function findOrCreateDriveFile(token) {
       try {
         const searchResp = await fetch(
@@ -1199,7 +1132,6 @@
         alert('Error al conectar con Google Drive. Los cambios no se sincronizarán.');
       }
     }
-
     async function createDriveFile(token) {
       const exportData = await exportAllData();
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -1213,7 +1145,6 @@
       if (resp.ok && uploadResult.id) return uploadResult.id;
       throw new Error('Error al crear archivo: ' + JSON.stringify(uploadResult));
     }
-
     async function uploadToDrive(token, fileId) {
       if (!fileId) return;
       const exportData = await exportAllData();
@@ -1227,7 +1158,6 @@
       if (!resp.ok) { const errorData = await resp.json(); throw new Error('Error al subir archivo: ' + JSON.stringify(errorData)); }
       return true;
     }
-
     async function loadFromDrive(token, fileId) {
       try {
         const resp = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: `Bearer ${token}` } });
@@ -1250,7 +1180,6 @@
         alert('Error al cargar los datos desde Drive. Se mantendrán los datos locales.');
       }
     }
-
     async function exportAllData() {
       const categories = await db.categories.toArray();
       const movements = await db.movements.toArray();
@@ -1259,7 +1188,6 @@
       const accounts = await db.accounts.toArray();
       return { version: 1, lastUpdated: new Date().toISOString(), categories, movements, loans, goals, accounts };
     }
-
     function scheduleSync() {
       if (!accessToken || !driveFileId) return;
       syncPill.textContent = 'Guardando...';
@@ -1278,17 +1206,12 @@
       }, 3000);
     }
 
-    // ============================================================
-    // 5. INICIALIZACIÓN
-    // ============================================================
     document.addEventListener('DOMContentLoaded', async () => {
       try {
         await db.open();
         try {
           const loanCat = await db.categories.where('nombre').equalsIgnoreCase('PRÉSTAMO').first();
-          if (loanCat && !loanCat.oculta) {
-            await db.categories.update(loanCat.id, { oculta: 1 });
-          }
+          if (loanCat && !loanCat.oculta) { await db.categories.update(loanCat.id, { oculta: 1 }); }
         } catch (e) { console.warn('No se pudo ocultar la categoría PRÉSTAMO:', e); }
 
         await loadDefaultData();
@@ -1318,7 +1241,6 @@
           try { loginWithGoogle(); }
           catch (e) { console.error('Error en login:', e); alert('Error al iniciar sesión con Google.'); }
         });
-
         document.getElementById('btnTrialLanding').addEventListener('click', async () => {
           try {
             isGoogleSession = false;
@@ -1331,7 +1253,6 @@
             alert('Error al iniciar modo prueba: ' + e.message);
           }
         });
-
         try { initGoogleAuth(); } catch (e) { console.warn('No se pudo inicializar Google Auth:', e); }
       } catch (e) {
         console.error('Error en inicialización:', e);
@@ -1352,7 +1273,6 @@
         }
       }
     }
-
     async function resetToTrialDefaults() {
       try {
         await db.transaction('rw', db.categories, db.movements, db.loans, db.goals, db.accounts, async () => {
@@ -1369,7 +1289,6 @@
         }
       } catch (e) { console.error('Error en resetToTrialDefaults:', e); throw e; }
     }
-
     async function exportData() {
       try {
         const data = await exportAllData();
@@ -1382,7 +1301,6 @@
         URL.revokeObjectURL(url);
       } catch (e) { console.error('Error al exportar:', e); alert('Error al exportar los datos.'); }
     }
-
     async function importData(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1408,7 +1326,6 @@
       } catch (e) { console.error('Error al importar:', e); alert('Error al importar los datos.'); }
       event.target.value = '';
     }
-
     async function resetAllData() {
       if (!confirm('¿Estás seguro de reiniciar todos los datos? Esta acción no se puede deshacer.')) return;
       try {
@@ -1426,7 +1343,6 @@
         scheduleSync();
       } catch (e) { console.error('Error al reiniciar datos:', e); alert('Error al reiniciar los datos.'); }
     }
-
     function setupFormSubmissions() {
       const formConfigs = [
         { id: 'movementForm', saveFn: saveMovement },
@@ -1461,9 +1377,7 @@
         });
       });
     }
-    // ============================================================
-    // 6. REFRESH Y RENDER
-    // ============================================================
+
     async function refreshAll() {
       await refreshDashboard();
       await refreshMovements();
@@ -1474,7 +1388,6 @@
       await refreshAccountsList();
       await refreshFilterDropdowns();
     }
-
     function updateChart(sums) {
       const ctx = document.getElementById('chartCanvas');
       if (!ctx) return;
@@ -1502,7 +1415,6 @@
         }
       });
     }
-
     function buildCategoryGradient(movsCategoria, accountsMap) {
       const totalCat = movsCategoria.reduce((s, m) => s + m.monto, 0);
       if (totalCat <= 0) return null;
@@ -1529,7 +1441,6 @@
       });
       return `linear-gradient(to right, ${stops.join(', ')})`;
     }
-
     async function refreshDashboard() {
       const categories = await db.categories.toArray();
       const catMap = {};
@@ -1576,7 +1487,6 @@
         `;
         listContainer.appendChild(pill);
       }
-
       if (sortableInstance) { sortableInstance.destroy(); sortableInstance = null; }
       if (listContainer.children.length > 1) {
         sortableInstance = new Sortable(listContainer, {
@@ -1593,15 +1503,12 @@
               const id = parseInt(item.dataset.categoriaId);
               if (!isNaN(id) && id !== 0) ids.push(id);
             });
-            for (let i = 0; i < ids.length; i++) {
-              await db.categories.update(ids[i], { orden: i });
-            }
+            for (let i = 0; i < ids.length; i++) { await db.categories.update(ids[i], { orden: i }); }
             await refreshDashboard();
             scheduleSync();
           }
         });
       }
-
       const loans = await db.loans.where('estado').equals('pendiente').toArray();
       const pendingTotal = loans.reduce((sum, l) => sum + l.monto, 0);
       document.getElementById('pendingLoansTotal').textContent = formatCurrency(pendingTotal);
@@ -1610,7 +1517,6 @@
       await renderAccountsWithVerification(movements);
       updateChart(sums);
     }
-
     async function renderAccountsWithVerification(movements) {
       const accounts = await db.accounts.toArray();
       const container = document.getElementById('accountBalances');
@@ -1631,9 +1537,7 @@
           else { statusClass = 'sobra'; statusText = `⚠️ Sobra $${diff.toFixed(2).replace('.', ',')}`; }
           totalReal += acc.saldoReal;
           totalVerificadas++;
-        } else {
-          totalReal += balance;
-        }
+        } else { totalReal += balance; }
         const realValueDisplay = (acc.saldoReal !== null && acc.saldoReal !== undefined) ? formatCurrency(acc.saldoReal) : '$0,00';
         const card = document.createElement('div');
         card.className = 'account-card';
@@ -1696,7 +1600,6 @@
         `;
       } else { totalContainer.innerHTML = ''; }
     }
-
     async function saveRealBalance(accountId, newValue) {
       await db.accounts.update(accountId, {
         saldoReal: newValue,
@@ -1704,15 +1607,11 @@
       });
     }
 
-    // ============================================================
-    // 7. MOVIMIENTOS
-    // ============================================================
     async function refreshMovements() {
       const filterType = document.getElementById('filterType').value;
       const filterCategory = document.getElementById('filterCategory').value;
       const filterAccount = document.getElementById('filterAccount').value;
       const filterSearch = document.getElementById('filterSearch').value.trim().toLowerCase();
-
       let movements = await db.movements.toArray();
       movements = movements.map(m => {
         if (typeof m.fecha !== 'string') {
@@ -1727,7 +1626,6 @@
         }
         return m;
       });
-
       if (filterType === 'ingreso') movements = movements.filter(m => m.monto > 0);
       else if (filterType === 'egreso') movements = movements.filter(m => m.monto < 0);
       if (filterCategory !== 'all') {
@@ -1741,11 +1639,9 @@
       }
       if (filterSearch) movements = movements.filter(m => (m.descripcion || '').toLowerCase().includes(filterSearch));
       movements.sort((a, b) => b.fecha.localeCompare(a.fecha));
-
       const categories = await db.categories.toArray();
       const catMap = {};
       categories.forEach(c => catMap[c.id] = c.nombre);
-
       const container = document.getElementById('movementsList');
       container.innerHTML = '';
       if (movements.length === 0) {
@@ -1755,7 +1651,6 @@
       const groups = {};
       movements.forEach(m => { if (!groups[m.fecha]) groups[m.fecha] = []; groups[m.fecha].push(m); });
       const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
-
       for (const dateStr of sortedDates) {
         const dateObj = parseLocalDate(dateStr);
         const displayDate = formatDateLocal(dateObj).toUpperCase();
@@ -1797,12 +1692,10 @@
         }
       }
     }
-
     function updateMonthLabel() {
       const date = new Date(currentYear, currentMonth);
       document.getElementById('currentMonthLabel').textContent = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     }
-
     function toggleShowAll() {
       showAllMovements = !showAllMovements;
       const btn = document.getElementById('showAllBtn');
@@ -1822,7 +1715,6 @@
       }
       applyFilters();
     }
-
     function changeMonth(delta) {
       if (showAllMovements) return;
       currentMonth += delta;
@@ -1830,7 +1722,6 @@
       if (currentMonth > 11) { currentMonth = 0; currentYear++; }
       updateMonthLabel(); applyFilters();
     }
-
     function applyFilters() { refreshMovements(); }
     function clearFilters() {
       document.getElementById('filterType').value = 'all';
@@ -1839,7 +1730,6 @@
       document.getElementById('filterSearch').value = '';
       refreshMovements();
     }
-
     function openAddMovement() {
       document.getElementById('movementForm').reset();
       document.getElementById('editMovementId').value = '';
@@ -1849,7 +1739,6 @@
       refreshAccountsDropdown('movementAccount');
       new bootstrap.Modal(document.getElementById('movementModal')).show();
     }
-
     async function editMovement(id) {
       const m = await db.movements.get(id);
       if (!m) return;
@@ -1866,7 +1755,6 @@
       document.getElementById('movementAccount').value = m.cuenta || '';
       new bootstrap.Modal(document.getElementById('movementModal')).show();
     }
-
     async function saveMovement() {
       const editId = document.getElementById('editMovementId').value;
       const fecha = document.getElementById('movementDate').value;
@@ -1882,18 +1770,13 @@
       bootstrap.Modal.getInstance(document.getElementById('movementModal')).hide();
       await refreshAll(); scheduleSync();
     }
-
     async function deleteMovement(id) {
       if (!confirm('¿Eliminar este movimiento?')) return;
       await db.movements.delete(id);
       await refreshAll(); scheduleSync();
     }
 
-    // ============================================================
-    // 8. MOVIMIENTO DIVIDIDO
-    // ============================================================
     let splitLineCounter = 0;
-
     function openAddSplitMovement() {
       document.getElementById('splitMovementForm').reset();
       document.getElementById('splitDate').value = getTodayLocal();
@@ -1904,7 +1787,6 @@
         new bootstrap.Modal(document.getElementById('splitMovementModal')).show();
       });
     }
-
     async function addSplitLine() {
       const id = splitLineCounter++;
       const container = document.getElementById('splitLinesContainer');
@@ -1928,13 +1810,11 @@
       });
       updateSplitTotals();
     }
-
     function removeSplitLine(id) {
       const line = document.querySelector(`.split-line[data-line-id="${id}"]`);
       if (line) line.remove();
       updateSplitTotals();
     }
-
     function updateSplitTotals() {
       const total = parseFloat(document.getElementById('splitTotalAmount').value) || 0;
       const lines = document.querySelectorAll('.split-line');
@@ -1953,7 +1833,6 @@
       });
       document.getElementById('splitSaveBtn').disabled = !(remaining === 0 && total > 0 && validLines.length >= 2 && validLines.length === lines.length);
     }
-
     async function saveSplitMovement() {
       const fecha = document.getElementById('splitDate').value;
       const tipo = document.querySelector('input[name="splitType"]:checked').value;
@@ -1976,9 +1855,6 @@
       await refreshAll(); scheduleSync();
     }
 
-    // ============================================================
-    // 9. REDONDEO
-    // ============================================================
     function openAddRedondeo() {
       document.getElementById('redondeoForm').reset();
       document.getElementById('redondeoDate').value = getTodayLocal();
@@ -1987,7 +1863,6 @@
         new bootstrap.Modal(document.getElementById('redondeoModal')).show();
       });
     }
-
     async function refreshRedondeoCategoryDropdowns() {
       const categories = await db.categories.toArray();
       const visibles = categories.filter(c => !c.oculta).sort((a, b) => (a.orden || 0) - (b.orden || 0));
@@ -2001,7 +1876,6 @@
         });
       });
     }
-
     async function saveRedondeo() {
       const fecha = document.getElementById('redondeoDate').value;
       const monto = parseFloat(document.getElementById('redondeoAmount').value);
@@ -2021,9 +1895,6 @@
       await refreshAll(); scheduleSync();
     }
 
-    // ============================================================
-    // 10. PRÉSTAMOS
-    // ============================================================
     async function refreshLoans() {
       const searchEl = document.getElementById('loanSearchPerson');
       const searchPerson = searchEl ? searchEl.value.trim().toLowerCase() : '';
@@ -2035,14 +1906,12 @@
       }
       pending.sort((a, b) => b.fecha.localeCompare(a.fecha));
       paid.sort((a, b) => b.fecha.localeCompare(a.fecha));
-
       const movements = await db.movements.toArray();
       const movMap = {};
       movements.forEach(m => { movMap[m.id] = m; });
       const categories = await db.categories.toArray();
       const catMap = {};
       categories.forEach(c => { catMap[c.id] = c.nombre; });
-
       const renderList = (containerId, items, isPending) => {
         const container = document.getElementById(containerId);
         container.innerHTML = '';
@@ -2080,7 +1949,6 @@
       renderList('pendingLoansList', pending, true);
       renderList('paidLoansList', paid, false);
     }
-
     function openAddLoan() {
       document.getElementById('loanForm').reset();
       document.getElementById('loanDate').value = getTodayLocal();
@@ -2088,7 +1956,6 @@
       refreshAccountsDropdownForLoan();
       new bootstrap.Modal(document.getElementById('loanModal')).show();
     }
-
     async function refreshCategoriesDropdownForLoan() {
       const categories = await db.categories.toArray();
       const visibles = categories.filter(c => !c.oculta).sort((a, b) => (a.orden || 0) - (b.orden || 0));
@@ -2100,7 +1967,6 @@
         select.appendChild(opt);
       });
     }
-
     async function saveLoan() {
       const persona = document.getElementById('loanPerson').value.trim();
       const monto = parseFloat(document.getElementById('loanAmount').value);
@@ -2120,7 +1986,6 @@
       bootstrap.Modal.getInstance(document.getElementById('loanModal')).hide();
       await refreshAll(); scheduleSync();
     }
-
     async function editLoan(id) {
       const loan = await db.loans.get(id);
       if (!loan) return;
@@ -2140,7 +2005,6 @@
       }
       new bootstrap.Modal(document.getElementById('editLoanModal')).show();
     }
-
     async function saveLoanEdit() {
       const id = parseInt(document.getElementById('editLoanId').value);
       const persona = document.getElementById('editLoanPerson').value.trim();
@@ -2158,7 +2022,6 @@
       bootstrap.Modal.getInstance(document.getElementById('editLoanModal')).hide();
       await refreshAll(); scheduleSync();
     }
-
     function openPayLoan(loanId) {
       db.loans.get(loanId).then(loan => {
         if (!loan) return;
@@ -2179,7 +2042,6 @@
         });
       });
     }
-
     async function confirmPayLoan() {
       const loanId = parseInt(document.getElementById('payLoanId').value);
       const cuentaPago = document.getElementById('payLoanAccount').value;
@@ -2198,7 +2060,6 @@
       bootstrap.Modal.getInstance(document.getElementById('payLoanModal')).hide();
       await refreshAll(); scheduleSync();
     }
-
     async function revertLoanPaid(loanId) {
       if (!confirm('¿Reintegrar este préstamo a Pendientes? Se eliminará el movimiento de pago.')) return;
       const loan = await db.loans.get(loanId);
@@ -2209,7 +2070,6 @@
       });
       await refreshAll(); scheduleSync();
     }
-
     async function deleteLoan(loanId) {
       if (!confirm('¿Eliminar este préstamo? Esta acción no se puede deshacer.')) return;
       const loan = await db.loans.get(loanId);
@@ -2224,9 +2084,6 @@
       await refreshAll(); scheduleSync();
     }
 
-    // ============================================================
-    // 11. METAS
-    // ============================================================
     async function getGoalRemaining(goal) {
       if (goal.lograda) return 0;
       if (!goal.categoriaAnclaId) return goal.costoTotal;
@@ -2235,7 +2092,6 @@
       const remaining = goal.costoTotal - sum;
       return remaining < 0 ? 0 : remaining;
     }
-
     async function refreshGoals() {
       const goals = await db.goals.toArray();
       const container = document.getElementById('goalsList');
@@ -2270,7 +2126,6 @@
         container.appendChild(col);
       }
     }
-
     function openAddGoal() {
       document.getElementById('goalForm').reset();
       document.getElementById('editGoalId').value = '';
@@ -2278,7 +2133,6 @@
       refreshCategoriesDropdown();
       new bootstrap.Modal(document.getElementById('goalModal')).show();
     }
-
     async function editGoal(id) {
       const goal = await db.goals.get(id);
       if (!goal) return;
@@ -2290,7 +2144,6 @@
       document.getElementById('goalCategory').value = goal.categoriaAnclaId || '';
       new bootstrap.Modal(document.getElementById('goalModal')).show();
     }
-
     async function saveGoal() {
       const editId = document.getElementById('editGoalId').value;
       const nombre = document.getElementById('goalName').value.trim();
@@ -2302,7 +2155,6 @@
       bootstrap.Modal.getInstance(document.getElementById('goalModal')).hide();
       await refreshAll(); scheduleSync();
     }
-
     async function markGoalAchieved(id) {
       if (!confirm('¿Marcar esta meta como lograda?')) return;
       await db.goals.update(id, { lograda: 1 });
@@ -2319,9 +2171,6 @@
       await refreshAll(); scheduleSync();
     }
 
-    // ============================================================
-    // 12. CATEGORÍAS
-    // ============================================================
     async function refreshCategoriesList() {
       const categories = await db.categories.toArray();
       const container = document.getElementById('categoriesList');
@@ -2345,7 +2194,6 @@
         container.appendChild(col);
       }
     }
-
     async function toggleCategoryVisibility(id) {
       if (id === 0) return;
       const cat = await db.categories.get(id);
@@ -2353,7 +2201,6 @@
       await db.categories.update(id, { oculta: cat.oculta ? 0 : 1 });
       await refreshAll(); scheduleSync();
     }
-
     async function refreshCategoriesDropdown() {
       const categories = await db.categories.toArray();
       const visibles = categories.filter(c => !c.oculta).sort((a, b) => (a.orden || 0) - (b.orden || 0));
@@ -2374,14 +2221,12 @@
         });
       }
     }
-
     function openAddCategory() {
       document.getElementById('categoryForm').reset();
       document.getElementById('categoryEditId').value = '';
       document.getElementById('categoryModalTitle').textContent = 'Nueva Categoría';
       new bootstrap.Modal(document.getElementById('categoryModal')).show();
     }
-
     async function editCategory(id) {
       const cat = await db.categories.get(id);
       if (!cat) return;
@@ -2390,7 +2235,6 @@
       document.getElementById('categoryModalTitle').textContent = 'Editar Categoría';
       new bootstrap.Modal(document.getElementById('categoryModal')).show();
     }
-
     async function saveCategory() {
       const name = document.getElementById('categoryName').value.trim();
       const editId = document.getElementById('categoryEditId').value;
@@ -2404,7 +2248,6 @@
       bootstrap.Modal.getInstance(document.getElementById('categoryModal')).hide();
       await refreshAll(); scheduleSync();
     }
-
     async function deleteCategory(id) {
       const cat = await db.categories.get(id);
       if (!cat) return;
@@ -2414,9 +2257,6 @@
       await refreshAll(); scheduleSync();
     }
 
-    // ============================================================
-    // 13. CUENTAS
-    // ============================================================
     async function refreshAccountsList() {
       const accounts = await db.accounts.toArray();
       const container = document.getElementById('accountsList');
@@ -2440,7 +2280,6 @@
         container.appendChild(col);
       }
     }
-
     async function refreshAccountsDropdown(selectId) {
       const accounts = await db.accounts.toArray();
       const select = document.getElementById(selectId);
@@ -2452,7 +2291,6 @@
         select.appendChild(opt);
       });
     }
-
     async function refreshAccountsDropdownForLoan() {
       const accounts = await db.accounts.toArray();
       const select = document.getElementById('loanAccount');
@@ -2464,7 +2302,6 @@
         select.appendChild(opt);
       });
     }
-
     function openAddAccount() {
       document.getElementById('accountForm').reset();
       document.getElementById('accountEditId').value = '';
@@ -2472,7 +2309,6 @@
       document.getElementById('accountModalTitle').textContent = 'Nueva Cuenta';
       new bootstrap.Modal(document.getElementById('accountModal')).show();
     }
-
     async function editAccount(id) {
       const acc = await db.accounts.get(id);
       if (!acc) return;
@@ -2482,7 +2318,6 @@
       document.getElementById('accountModalTitle').textContent = 'Editar Cuenta';
       new bootstrap.Modal(document.getElementById('accountModal')).show();
     }
-
     async function saveAccount() {
       const name = document.getElementById('accountName').value.trim();
       const color = document.getElementById('accountColor').value || DEFAULT_ACCOUNT_COLOR;
@@ -2501,7 +2336,6 @@
       bootstrap.Modal.getInstance(document.getElementById('accountModal')).hide();
       await refreshAll(); scheduleSync();
     }
-
     async function deleteAccount(id) {
       const acc = await db.accounts.get(id);
       if (!acc) return;
@@ -2512,9 +2346,6 @@
       await refreshAll(); scheduleSync();
     }
 
-    // ============================================================
-    // 14. FILTROS Y TABS
-    // ============================================================
     async function refreshFilterDropdowns() {
       const categories = await db.categories.toArray();
       const visibles = categories.filter(c => !c.oculta).sort((a, b) => (a.orden || 0) - (b.orden || 0));
@@ -2538,7 +2369,6 @@
         });
       }
     }
-
     function setupTabs() {
       document.querySelectorAll('.nav-item').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -2559,15 +2389,11 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js')
-          .then(registration => {
-            console.log('✅ Service Worker registrado con éxito. Scope:', registration.scope);
-          })
-          .catch(error => {
-            console.warn('⚠️ Error al registrar el Service Worker (la app sigue funcionando):', error);
-          });
+          .then(registration => { console.log('✅ Service Worker registrado con éxito. Scope:', registration.scope); })
+          .catch(error => { console.warn('⚠️ Error al registrar el Service Worker:', error); });
       });
     } else {
-      console.log('Este navegador no soporta Service Workers. La app funcionará sin modo offline.');
+      console.log('Este navegador no soporta Service Workers.');
     }
   </script>
 </body>
