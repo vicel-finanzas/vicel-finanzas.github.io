@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vicel-finanzas-v6';
+const CACHE_NAME = 'vicel-finanzas-v7';
 const STATIC_ASSETS = [
   './',
   './index.html',
