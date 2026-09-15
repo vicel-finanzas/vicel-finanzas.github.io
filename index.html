@@ -198,6 +198,8 @@
     .btn-primary-custom.btn-dividido-custom:hover { background: #0eb30e; }
     .btn-primary-custom.btn-redondeo-custom { background: #1f81e2; }
     .btn-primary-custom.btn-redondeo-custom:hover { background: #0e61b3; }
+    .btn-primary-custom.btn-intercambio-custom { background: #845ec2; }
+    .btn-primary-custom.btn-intercambio-custom:hover { background: #6b46a8; }
     .btn-danger-custom {
       background: #dc3545; border: none; border-radius: 60px; padding: 10px 24px;
       font-weight: 700; color: #fff; transition: 0.2s; font-size: 16px;
@@ -231,7 +233,7 @@
     .filter-grid .filter-item .month-nav .btn-show-all:hover { background: var(--color-naranja-hover); }
     .filter-grid .filter-item .month-nav .btn-show-all.active { background: #28a745; }
 
-    /* ===== MOVIMIENTOS (nueva estructura igual a préstamos) ===== */
+    /* ===== MOVIMIENTOS ===== */
     .movement-pill {
       background: var(--color-crema);
       border-radius: 28px;
@@ -292,6 +294,47 @@
     .movement-pill .movement-footer .actions .btn-icon:hover { background: rgba(0,0,0,0.08); color: #1A1A1A; }
     .movement-pill .movement-footer .actions .btn-icon.danger:hover { color: #dc3545; }
 
+    /* ===== AGRUPADOS ===== */
+    .movement-group { margin-bottom: 10px; }
+    .movement-group > .movement-pill.group-parent { margin-bottom: 0; cursor: default; }
+    .movement-group:not(.expanded) > .movement-pill.group-parent {
+      border-radius: 28px;
+      margin-bottom: 10px;
+    }
+    .movement-group.expanded > .movement-pill.group-parent {
+      border-bottom-left-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+    .movement-pill.group-parent.tipo-dividido { background: #f0fce9; }
+    .movement-pill.group-parent.tipo-redondeo { background: #ebf2fb; }
+    .movement-pill.group-parent.tipo-intercambio { background: #f5ecfb; }
+
+    .movement-pill.group-parent .group-chevron {
+      background: transparent; border: none; padding: 4px 6px;
+      font-size: 18px; color: #6c6b5e; cursor: pointer;
+      transition: transform 0.2s; border-radius: 30px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .movement-pill.group-parent .group-chevron:hover { background: rgba(0,0,0,0.08); }
+    .movement-group.expanded > .movement-pill.group-parent .group-chevron {
+      transform: rotate(180deg);
+    }
+
+    .movement-group-children {
+      display: none;
+      background: rgba(0,0,0,0.10);
+      border-radius: 0 0 20px 20px;
+      padding: 8px 10px 4px;
+      margin-bottom: 10px;
+    }
+    .movement-group.expanded > .movement-group-children { display: block; }
+    .movement-group-children .movement-pill {
+      margin-bottom: 6px;
+      border-radius: 20px;
+      padding: 12px 20px;
+    }
+    .movement-group-children .movement-pill:last-child { margin-bottom: 4px; }
+
     /* ===== PRÉSTAMOS ===== */
     .loan-pill {
       background: var(--color-crema);
@@ -326,18 +369,12 @@
     }
     .loan-pill .amount { font-weight: 700; font-size: 18px; white-space: nowrap; }
     .loan-pill .loan-desc {
-      color: #4a4a4a;
-      font-weight: 400;
-      word-break: break-word;
-      overflow-wrap: break-word;
-      line-height: 1.4;
+      color: #4a4a4a; font-weight: 400;
+      word-break: break-word; overflow-wrap: break-word; line-height: 1.4;
     }
     .loan-pill .loan-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; flex-wrap: wrap;
     }
     .loan-pill .date { color: #4a4a4a; font-weight: 400; }
     .loan-pill .actions { display: flex; align-items: center; gap: 8px; }
@@ -430,7 +467,6 @@
       .category-pill .drag-handle { width: 42px; height: 42px; left: -52px; }
       .category-pill .drag-handle i { font-size: 18px; }
 
-      /* Movimientos: misma estructura que préstamos */
       .movement-pill {
         padding: 14px 20px;
         border-radius: 28px;
@@ -452,13 +488,12 @@
         -webkit-tap-highlight-color: transparent;
       }
       .movement-pill .movement-footer .actions .btn-icon:active { background: rgba(0,0,0,0.08); }
+      .movement-pill.group-parent .group-chevron { min-width: 38px; min-height: 38px; padding: 6px 8px; }
 
-      /* Préstamos: misma estructura */
-      .loan-pill {
-        padding: 14px 20px;
-        border-radius: 28px;
-        gap: 4px;
-      }
+      .movement-group-children { padding: 6px 8px 2px; }
+      .movement-group-children .movement-pill { padding: 10px 14px; border-radius: 16px; }
+
+      .loan-pill { padding: 14px 20px; border-radius: 28px; gap: 4px; }
       .loan-pill .loan-header { align-items: flex-start; gap: 8px; }
       .loan-pill .loan-who { gap: 8px; flex: 1; min-width: 0; }
       .loan-pill .loan-who .person { font-size: 16px; letter-spacing: 0.3px; line-height: 1.2; }
@@ -572,10 +607,11 @@
     <div id="tab-movements" class="tab-content">
       <div class="section-header">
         <h2>Movimientos</h2>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
           <button class="btn-primary-custom" onclick="openAddMovement()"><i class="bi bi-plus-lg"></i> Nuevo</button>
           <button class="btn-primary-custom btn-dividido-custom" onclick="openAddSplitMovement()"><i class="bi bi-distribute-horizontal"></i> Dividido</button>
           <button class="btn-primary-custom btn-redondeo-custom" onclick="openAddRedondeo()"><i class="bi bi-arrow-left-right"></i> Redondeo</button>
+          <button class="btn-primary-custom btn-intercambio-custom" onclick="openAddIntercambio()"><i class="bi bi-shuffle"></i> Intercambiar</button>
         </div>
       </div>
       <div class="filter-grid">
@@ -793,6 +829,45 @@
         <div class="modal-footer">
           <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button class="btn btn-primary" style="background:var(--color-naranja);border:none;" onclick="saveRedondeo()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="intercambioModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Intercambio entre categorías y cuentas</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="intercambioForm">
+            <div class="row">
+              <div class="col-md-6 mb-3"><label>Fecha</label><input type="date" id="intercambioDate" class="form-control" required /></div>
+              <div class="col-md-6 mb-3"><label>Monto</label><input type="number" id="intercambioAmount" class="form-control" step="0.01" required /></div>
+            </div>
+            <hr />
+            <h6>Lado A</h6>
+            <div class="row">
+              <div class="col-md-6 mb-3"><label>Categoría A</label><select id="intercambioCatA" class="form-select" required></select></div>
+              <div class="col-md-6 mb-3"><label>Cuenta A</label><select id="intercambioCuentaA" class="form-select" required></select></div>
+            </div>
+            <hr />
+            <h6>Lado B</h6>
+            <div class="row">
+              <div class="col-md-6 mb-3"><label>Categoría B</label><select id="intercambioCatB" class="form-select" required></select></div>
+              <div class="col-md-6 mb-3"><label>Cuenta B</label><select id="intercambioCuentaB" class="form-select" required></select></div>
+            </div>
+            <div class="mb-3"><label>Descripción (opcional)</label><input type="text" id="intercambioDesc" class="form-control" placeholder="Ej: INTERCAMBIO PC ↔ UNIVERSIDAD" /></div>
+            <div class="mb-2 text-white-50" style="font-size:13px;">
+              <i class="bi bi-info-circle"></i> Se crearán 4 movimientos: sale de A (Cuenta A), entra a B (Cuenta A), sale de B (Cuenta B) y entra a A (Cuenta B).
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button class="btn btn-primary" style="background:var(--color-naranja);border:none;" onclick="saveIntercambio()">Guardar</button>
         </div>
       </div>
     </div>
@@ -1037,6 +1112,7 @@
     let chartInstance = null;
     let showAllMovements = false;
     let sortableInstance = null;
+    const expandedGroups = new Set();
 
     const defaultCategories = ['Ocio', 'Pasaje', 'Comida', 'Alquiler', 'Aseo personal'];
     const DEFAULT_ACCOUNT_COLOR = '#888888';
@@ -1637,6 +1713,139 @@
       });
     }
 
+    // ===== Helpers para renderizar movimientos y grupos =====
+    function buildMovementCard(m, catMap) {
+      const catName = catMap[m.categoriaId] || 'Sin categoría';
+      const sign = m.monto >= 0 ? 'positive' : 'negative';
+      const abs = Math.abs(m.monto).toFixed(2).replace('.', ',');
+      const pill = document.createElement('div');
+      pill.className = 'movement-pill';
+      let grupoBadge = '';
+      if (m.grupoId) {
+        if (m.grupoId.startsWith('redondeo_')) {
+          grupoBadge = `<span class="split-badge" style="background:#e0e0ff;color:#0e61b3;" title="Redondeo entre categorías"><i class="bi bi-arrow-left-right"></i> Redondeo</span>`;
+        } else if (m.grupoId.startsWith('intercambio_')) {
+          grupoBadge = `<span class="split-badge" style="background:#f0e0ff;color:#845ec2;" title="Intercambio entre categorías y cuentas"><i class="bi bi-shuffle"></i> Intercambio</span>`;
+        } else {
+          grupoBadge = `<span class="split-badge" style="background:#e0ffe0;color:#0eb30e;" title="Movimiento dividido"><i class="bi bi-distribute-horizontal"></i> Dividido</span>`;
+        }
+      }
+      pill.innerHTML = `
+        <div class="movement-header">
+          <div class="movement-who">
+            <span class="cat">${catName}</span>
+            ${m.cuenta ? `<span class="account-badge">${m.cuenta}</span>` : ''}
+            ${grupoBadge}
+          </div>
+          <span class="amount ${sign}">${m.monto >= 0 ? '+' : '-'}$${abs}</span>
+        </div>
+        ${m.descripcion ? `<div class="movement-desc">${m.descripcion}</div>` : ''}
+        <div class="movement-footer">
+          <div class="actions">
+            <button class="btn-icon" onclick="editMovement(${m.id})" title="Editar"><i class="bi bi-pencil"></i></button>
+            <button class="btn-icon danger" onclick="deleteMovement(${m.id})" title="Eliminar"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      `;
+      return pill;
+    }
+
+    function buildMovementGroup(grupoId, movs, catMap) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'movement-group';
+      wrapper.dataset.grupoId = grupoId;
+      if (expandedGroups.has(grupoId)) wrapper.classList.add('expanded');
+
+      const firstMov = movs[0];
+      const sameAccount = movs.every(m => m.cuenta === firstMov.cuenta);
+      const sameDesc = movs.every(m => (m.descripcion || '') === (firstMov.descripcion || ''));
+      const catName = catMap[firstMov.categoriaId] || 'Sin categoría';
+
+      let tipoLabel = 'Grupo', tipoClass = '', tipoBadgeStyle = '';
+      if (grupoId.startsWith('split_')) {
+        tipoLabel = 'Dividido'; tipoClass = 'tipo-dividido';
+        tipoBadgeStyle = 'background:#e0ffe0;color:#0eb30e;';
+      } else if (grupoId.startsWith('redondeo_')) {
+        tipoLabel = 'Redondeo'; tipoClass = 'tipo-redondeo';
+        tipoBadgeStyle = 'background:#e0e0ff;color:#0e61b3;';
+      } else if (grupoId.startsWith('intercambio_')) {
+        tipoLabel = 'Intercambio'; tipoClass = 'tipo-intercambio';
+        tipoBadgeStyle = 'background:#f0e0ff;color:#845ec2;';
+      }
+
+      let amountStr, amountClass;
+      if (grupoId.startsWith('redondeo_') || grupoId.startsWith('intercambio_')) {
+        const abs = Math.abs(firstMov.monto).toFixed(2).replace('.', ',');
+        amountStr = `$${abs}`;
+        amountClass = 'positive';
+      } else {
+        const total = movs.reduce((s, m) => s + m.monto, 0);
+        const sign = total >= 0 ? '+' : '-';
+        const abs = Math.abs(total).toFixed(2).replace('.', ',');
+        amountStr = `${sign}$${abs}`;
+        amountClass = total >= 0 ? 'positive' : 'negative';
+      }
+
+      let tipoIcon = 'bi-distribute-horizontal';
+      if (grupoId.startsWith('redondeo_')) tipoIcon = 'bi-arrow-left-right';
+      else if (grupoId.startsWith('intercambio_')) tipoIcon = 'bi-shuffle';
+
+      const parent = document.createElement('div');
+      parent.className = `movement-pill group-parent ${tipoClass}`;
+      parent.innerHTML = `
+        <div class="movement-header">
+          <div class="movement-who">
+            <span class="cat">${catName}</span>
+            ${sameAccount && firstMov.cuenta ? `<span class="account-badge">${firstMov.cuenta}</span>` : ''}
+            <span class="split-badge" style="${tipoBadgeStyle}"><i class="bi ${tipoIcon}"></i> ${tipoLabel}</span>
+          </div>
+          <span class="amount ${amountClass}">${amountStr}</span>
+        </div>
+        ${sameDesc && firstMov.descripcion ? `<div class="movement-desc">${firstMov.descripcion}</div>` : ''}
+        <div class="movement-footer">
+          <div class="actions">
+            <button class="btn-icon" onclick="editGroupDescription('${grupoId}')" title="Editar descripción del grupo"><i class="bi bi-pencil"></i></button>
+            <button class="btn-icon danger" onclick="deleteGroup('${grupoId}')" title="Eliminar todo el grupo"><i class="bi bi-trash"></i></button>
+            <button class="btn-icon group-chevron" onclick="toggleGroup('${grupoId}')" title="Ver detalles"><i class="bi bi-chevron-down"></i></button>
+          </div>
+        </div>
+      `;
+      wrapper.appendChild(parent);
+
+      const children = document.createElement('div');
+      children.className = 'movement-group-children';
+      for (const m of movs) children.appendChild(buildMovementCard(m, catMap));
+      wrapper.appendChild(children);
+      return wrapper;
+    }
+
+    function toggleGroup(grupoId) {
+      const el = document.querySelector(`.movement-group[data-grupo-id="${grupoId}"]`);
+      if (expandedGroups.has(grupoId)) {
+        expandedGroups.delete(grupoId);
+        if (el) el.classList.remove('expanded');
+      } else {
+        expandedGroups.add(grupoId);
+        if (el) el.classList.add('expanded');
+      }
+    }
+    async function deleteGroup(grupoId) {
+      if (!confirm('¿Eliminar TODOS los movimientos de este grupo? Esta acción no se puede deshacer.')) return;
+      const movs = await db.movements.where('grupoId').equals(grupoId).toArray();
+      for (const m of movs) await db.movements.delete(m.id);
+      expandedGroups.delete(grupoId);
+      await refreshAll(); scheduleSync();
+    }
+    async function editGroupDescription(grupoId) {
+      const movs = await db.movements.where('grupoId').equals(grupoId).toArray();
+      if (movs.length === 0) return;
+      const currentDesc = movs[0].descripcion || '';
+      const newDesc = prompt('Nueva descripción para todos los movimientos del grupo:', currentDesc);
+      if (newDesc === null) return;
+      for (const m of movs) await db.movements.update(m.id, { descripcion: newDesc });
+      await refreshAll(); scheduleSync();
+    }
+
     async function refreshMovements() {
       const filterType = document.getElementById('filterType').value;
       const filterCategory = document.getElementById('filterCategory').value;
@@ -1669,18 +1878,21 @@
       }
       if (filterSearch) movements = movements.filter(m => (m.descripcion || '').toLowerCase().includes(filterSearch));
       movements.sort((a, b) => b.fecha.localeCompare(a.fecha));
+
       const categories = await db.categories.toArray();
       const catMap = {};
       categories.forEach(c => catMap[c.id] = c.nombre);
+
       const container = document.getElementById('movementsList');
       container.innerHTML = '';
       if (movements.length === 0) {
         container.innerHTML = '<p class="text-light-50">No hay movimientos que coincidan con los filtros.</p>';
         return;
       }
-      const groups = {};
-      movements.forEach(m => { if (!groups[m.fecha]) groups[m.fecha] = []; groups[m.fecha].push(m); });
-      const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+      const byDate = {};
+      movements.forEach(m => { if (!byDate[m.fecha]) byDate[m.fecha] = []; byDate[m.fecha].push(m); });
+      const sortedDates = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
+
       for (const dateStr of sortedDates) {
         const dateObj = parseLocalDate(dateStr);
         const displayDate = formatDateLocal(dateObj).toUpperCase();
@@ -1688,42 +1900,33 @@
         header.className = 'text-white-50 fw-bold mt-3 mb-2';
         header.textContent = displayDate;
         container.appendChild(header);
-        const items = groups[dateStr];
-        for (const m of items) {
-          const catName = catMap[m.categoriaId] || 'Sin categoría';
-          const sign = m.monto >= 0 ? 'positive' : 'negative';
-          const abs = Math.abs(m.monto).toFixed(2).replace('.', ',');
-          const pill = document.createElement('div');
-          pill.className = 'movement-pill';
-          let grupoBadge = '';
+
+        const items = byDate[dateStr];
+        const groupsMap = {};
+        const renderOrder = [];
+        items.forEach(m => {
           if (m.grupoId) {
-            if (m.grupoId.startsWith('redondeo_')) {
-              grupoBadge = `<span class="split-badge" style="background:#e0e0ff;color:#0e61b3;" title="Redondeo entre categorías"><i class="bi bi-arrow-left-right"></i> Redondeo</span>`;
+            if (!groupsMap[m.grupoId]) { groupsMap[m.grupoId] = []; renderOrder.push({ type: 'group', id: m.grupoId }); }
+            groupsMap[m.grupoId].push(m);
+          } else {
+            renderOrder.push({ type: 'single', mov: m });
+          }
+        });
+        for (const entry of renderOrder) {
+          if (entry.type === 'single') {
+            container.appendChild(buildMovementCard(entry.mov, catMap));
+          } else {
+            const movs = groupsMap[entry.id];
+            if (movs.length === 1) {
+              container.appendChild(buildMovementCard(movs[0], catMap));
             } else {
-              grupoBadge = `<span class="split-badge" style="background:#e0ffe0;color:#0eb30e;" title="Movimiento dividido"><i class="bi bi-distribute-horizontal"></i> Dividido</span>`;
+              container.appendChild(buildMovementGroup(entry.id, movs, catMap));
             }
           }
-          pill.innerHTML = `
-            <div class="movement-header">
-              <div class="movement-who">
-                <span class="cat">${catName}</span>
-                ${m.cuenta ? `<span class="account-badge">${m.cuenta}</span>` : ''}
-                ${grupoBadge}
-              </div>
-              <span class="amount ${sign}">${m.monto >= 0 ? '+' : '-'}$${abs}</span>
-            </div>
-            ${m.descripcion ? `<div class="movement-desc">${m.descripcion}</div>` : ''}
-            <div class="movement-footer">
-              <div class="actions">
-                <button class="btn-icon" onclick="editMovement(${m.id})" title="Editar"><i class="bi bi-pencil"></i></button>
-                <button class="btn-icon danger" onclick="deleteMovement(${m.id})" title="Eliminar"><i class="bi bi-trash"></i></button>
-              </div>
-            </div>
-          `;
-          container.appendChild(pill);
         }
       }
     }
+
     function updateMonthLabel() {
       const date = new Date(currentYear, currentMonth);
       document.getElementById('currentMonthLabel').textContent = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
@@ -1883,6 +2086,7 @@
       }
       if (registros.length < 2) { alert('Debes repartir el monto en al menos 2 categorías.'); return; }
       await db.movements.bulkAdd(registros);
+      expandedGroups.add(grupoId);
       bootstrap.Modal.getInstance(document.getElementById('splitMovementModal')).hide();
       await refreshAll(); scheduleSync();
     }
@@ -1923,7 +2127,63 @@
         { fecha, categoriaId: categoriaOrigenId, monto: -monto, descripcion: 'REDONDEO', cuenta, grupoId },
         { fecha, categoriaId: categoriaDestinoId, monto: monto, descripcion: 'REDONDEO', cuenta, grupoId }
       ]);
+      expandedGroups.add(grupoId);
       bootstrap.Modal.getInstance(document.getElementById('redondeoModal')).hide();
+      await refreshAll(); scheduleSync();
+    }
+
+    async function refreshIntercambioDropdowns() {
+      const categories = await db.categories.toArray();
+      const visibles = categories.filter(c => !c.oculta).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      ['intercambioCatA', 'intercambioCatB'].forEach(selectId => {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '';
+        visibles.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id; opt.textContent = c.nombre;
+          select.appendChild(opt);
+        });
+      });
+      const accounts = await db.accounts.toArray();
+      ['intercambioCuentaA', 'intercambioCuentaB'].forEach(selectId => {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '';
+        accounts.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.nombre; opt.textContent = a.nombre;
+          select.appendChild(opt);
+        });
+      });
+    }
+    function openAddIntercambio() {
+      document.getElementById('intercambioForm').reset();
+      document.getElementById('intercambioDate').value = getTodayLocal();
+      refreshIntercambioDropdowns().then(() => {
+        new bootstrap.Modal(document.getElementById('intercambioModal')).show();
+      });
+    }
+    async function saveIntercambio() {
+      const fecha = document.getElementById('intercambioDate').value;
+      const monto = parseFloat(document.getElementById('intercambioAmount').value);
+      const catAId = parseInt(document.getElementById('intercambioCatA').value);
+      const cuentaA = document.getElementById('intercambioCuentaA').value;
+      const catBId = parseInt(document.getElementById('intercambioCatB').value);
+      const cuentaB = document.getElementById('intercambioCuentaB').value;
+      const desc = document.getElementById('intercambioDesc').value.trim();
+      if (!fecha || isNaN(monto) || monto <= 0) { alert('Completa la fecha y el monto (mayor a 0).'); return; }
+      if (isNaN(catAId) || isNaN(catBId)) { alert('Selecciona ambas categorías.'); return; }
+      if (!cuentaA || !cuentaB) { alert('Selecciona ambas cuentas.'); return; }
+      if (catAId === catBId && cuentaA === cuentaB) { alert('Los lados A y B son iguales, no hay intercambio.'); return; }
+      const grupoId = `intercambio_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+      const descFinal = desc || 'INTERCAMBIO';
+      await db.movements.bulkAdd([
+        { fecha, categoriaId: catAId, monto: -monto, descripcion: descFinal, cuenta: cuentaA, grupoId },
+        { fecha, categoriaId: catBId, monto: monto, descripcion: descFinal, cuenta: cuentaA, grupoId },
+        { fecha, categoriaId: catBId, monto: -monto, descripcion: descFinal, cuenta: cuentaB, grupoId },
+        { fecha, categoriaId: catAId, monto: monto, descripcion: descFinal, cuenta: cuentaB, grupoId }
+      ]);
+      expandedGroups.add(grupoId);
+      bootstrap.Modal.getInstance(document.getElementById('intercambioModal')).hide();
       await refreshAll(); scheduleSync();
     }
 
