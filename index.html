@@ -233,7 +233,6 @@
     .filter-grid .filter-item .month-nav .btn-show-all:hover { background: var(--color-naranja-hover); }
     .filter-grid .filter-item .month-nav .btn-show-all.active { background: #28a745; }
 
-    /* ===== MOVIMIENTOS ===== */
     .movement-pill {
       background: var(--color-crema);
       border-radius: 28px;
@@ -294,7 +293,6 @@
     .movement-pill .movement-footer .actions .btn-icon:hover { background: rgba(0,0,0,0.08); color: #1A1A1A; }
     .movement-pill .movement-footer .actions .btn-icon.danger:hover { color: #dc3545; }
 
-    /* ===== AGRUPADOS ===== */
     .movement-group { margin-bottom: 10px; }
     .movement-group > .movement-pill.group-parent { margin-bottom: 0; cursor: default; }
     .movement-group:not(.expanded) > .movement-pill.group-parent {
@@ -335,7 +333,6 @@
     }
     .movement-group-children .movement-pill:last-child { margin-bottom: 4px; }
 
-    /* ===== PRÉSTAMOS ===== */
     .loan-pill {
       background: var(--color-crema);
       border-radius: 28px;
@@ -467,11 +464,7 @@
       .category-pill .drag-handle { width: 42px; height: 42px; left: -52px; }
       .category-pill .drag-handle i { font-size: 18px; }
 
-      .movement-pill {
-        padding: 14px 20px;
-        border-radius: 28px;
-        gap: 4px;
-      }
+      .movement-pill { padding: 14px 20px; border-radius: 28px; gap: 4px; }
       .movement-pill .movement-header { align-items: flex-start; gap: 8px; }
       .movement-pill .movement-who { gap: 8px; flex: 1; min-width: 0; }
       .movement-pill .movement-who .cat { font-size: 16px; letter-spacing: 0.3px; line-height: 1.2; }
@@ -1521,21 +1514,23 @@
         }
       });
     }
+
+    // ✅ FIX: Gradiente basado en saldo NETO por cuenta (positivos + negativos)
     function buildCategoryGradient(movsCategoria, accountsMap) {
-      const totalCat = movsCategoria.reduce((s, m) => s + m.monto, 0);
-      if (totalCat <= 0) return null;
       const byCuenta = {};
       movsCategoria.forEach(m => {
-        if (m.monto > 0) {
-          const key = (m.cuenta && m.cuenta.trim()) ? m.cuenta : 'sin_cuenta';
-          byCuenta[key] = (byCuenta[key] || 0) + m.monto;
-        }
+        const key = (m.cuenta && m.cuenta.trim()) ? m.cuenta : 'sin_cuenta';
+        byCuenta[key] = (byCuenta[key] || 0) + m.monto;
       });
-      const totalPositivo = Object.values(byCuenta).reduce((s, v) => s + v, 0);
+      const positivos = {};
+      Object.entries(byCuenta).forEach(([key, val]) => {
+        if (val > 0) positivos[key] = val;
+      });
+      const totalPositivo = Object.values(positivos).reduce((s, v) => s + v, 0);
       if (totalPositivo <= 0) return null;
       const stops = [];
       let acumulado = 0;
-      Object.entries(byCuenta).forEach(([key, amt]) => {
+      Object.entries(positivos).forEach(([key, amt]) => {
         const pct = (amt / totalPositivo) * 100;
         const start = acumulado;
         acumulado += pct;
@@ -1547,6 +1542,7 @@
       });
       return `linear-gradient(to right, ${stops.join(', ')})`;
     }
+
     async function refreshDashboard() {
       const categories = await db.categories.toArray();
       const catMap = {};
@@ -1713,7 +1709,6 @@
       });
     }
 
-    // ===== Helpers para renderizar movimientos y grupos =====
     function buildMovementCard(m, catMap) {
       const catName = catMap[m.categoriaId] || 'Sin categoría';
       const sign = m.monto >= 0 ? 'positive' : 'negative';
