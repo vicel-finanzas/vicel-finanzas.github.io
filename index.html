@@ -259,7 +259,6 @@
     .movement-pill .right-group .actions .btn-icon:hover { background: rgba(0,0,0,0.08); color: #1A1A1A; }
     .movement-pill .right-group .actions .btn-icon.danger:hover { color: #dc3545; }
 
-    /* ===== PRÉSTAMOS: nueva estructura ===== */
     .loan-pill {
       background: var(--color-crema);
       border-radius: 28px;
@@ -397,7 +396,6 @@
       .category-pill .drag-handle { width: 42px; height: 42px; left: -52px; }
       .category-pill .drag-handle i { font-size: 18px; }
 
-      /* Movimientos: tarjeta tipo meta */
       .movement-pill {
         flex-direction: column;
         align-items: stretch;
@@ -423,7 +421,6 @@
       }
       .movement-pill .right-group .actions .btn-icon:active { background: rgba(0,0,0,0.08); }
 
-      /* Préstamos: misma estructura y misma forma */
       .loan-pill {
         padding: 14px 20px;
         border-radius: 28px;
@@ -1936,8 +1933,8 @@
             <div class="loan-footer">
               <span class="date">${dateStr}</span>
               <div class="actions">
-                <button class="btn-icon danger" onclick="deleteLoan(${loan.id})" title="Eliminar"><i class="bi bi-trash"></i></button>
                 <button class="btn-icon" onclick="editLoan(${loan.id})" title="Editar"><i class="bi bi-pencil"></i></button>
+                <button class="btn-icon danger" onclick="deleteLoan(${loan.id})" title="Eliminar"><i class="bi bi-trash"></i></button>
                 ${isPending ? `<button class="btn-icon success" onclick="openPayLoan(${loan.id})" title="Marcar como pagado"><i class="bi bi-check-lg"></i></button>` :
                              `<button class="btn-icon primary" onclick="revertLoanPaid(${loan.id})" title="Revertir a pendiente"><i class="bi bi-arrow-counterclockwise"></i></button>`}
               </div>
@@ -2115,10 +2112,10 @@
             <div class="footer">
               <span>${goal.lograda ? '100%' : Math.round(progress) + '%'}</span>
               <div>
-                ${!goal.lograda ? `<button class="btn-icon success" onclick="markGoalAchieved(${goal.id})"><i class="bi bi-check-lg"></i></button>` :
-                                  `<button class="btn-icon primary" onclick="revertGoalAchieved(${goal.id})"><i class="bi bi-arrow-counterclockwise"></i></button>`}
                 <button class="btn-icon" onclick="editGoal(${goal.id})"><i class="bi bi-pencil"></i></button>
                 <button class="btn-icon danger" onclick="deleteGoal(${goal.id})"><i class="bi bi-trash"></i></button>
+                ${!goal.lograda ? `<button class="btn-icon success" onclick="markGoalAchieved(${goal.id})"><i class="bi bi-check-lg"></i></button>` :
+                                  `<button class="btn-icon primary" onclick="revertGoalAchieved(${goal.id})"><i class="bi bi-arrow-counterclockwise"></i></button>`}
               </div>
             </div>
           </div>
