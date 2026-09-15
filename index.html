@@ -267,6 +267,7 @@
     .movement-pill .movement-who .split-badge {
       border-radius: 30px; padding: 2px 10px; font-size: 11px; font-weight: 600;
       display: inline-flex; align-items: center; gap: 4px;
+      color: #fff;
     }
     .movement-pill .amount { font-weight: 700; font-size: 18px; white-space: nowrap; }
     .movement-pill .amount.positive { color: var(--color-oscuro); }
@@ -320,7 +321,6 @@
 
     .movement-group-children {
       display: none;
-      background: rgba(0,0,0,0.10);
       border-radius: 0 0 20px 20px;
       padding: 8px 10px 4px;
       margin-bottom: 10px;
@@ -333,10 +333,10 @@
     }
     .movement-group-children .movement-pill:last-child { margin-bottom: 4px; }
 
-    /* Sub-movimientos de Intercambio: fondo morado un poco más oscuro que el padre */
-    .movement-group.tipo-intercambio .movement-group-children .movement-pill {
-      background: #e8d5f0;
-    }
+    /* Fondo del desplegable según tipo */
+    .movement-group.tipo-dividido .movement-group-children { background: #c8ebc0; }
+    .movement-group.tipo-redondeo .movement-group-children { background: #b8d4eb; }
+    .movement-group.tipo-intercambio .movement-group-children { background: #d4b8e0; }
 
     .loan-pill {
       background: var(--color-crema);
@@ -1723,11 +1723,11 @@
       let grupoBadge = '';
       if (m.grupoId) {
         if (m.grupoId.startsWith('redondeo_')) {
-          grupoBadge = `<span class="split-badge" style="background:#e0e0ff;color:#1f81e2;" title="Redondeo entre categorías"><i class="bi bi-arrow-left-right"></i> Redondeo</span>`;
+          grupoBadge = `<span class="split-badge" style="background:#1f81e2;" title="Redondeo entre categorías"><i class="bi bi-arrow-left-right"></i> Redondeo</span>`;
         } else if (m.grupoId.startsWith('intercambio_')) {
-          grupoBadge = `<span class="split-badge" style="background:#f0e0ff;color:#845ec2;" title="Intercambio entre categorías y cuentas"><i class="bi bi-shuffle"></i> Intercambio</span>`;
+          grupoBadge = `<span class="split-badge" style="background:#845ec2;" title="Intercambio entre categorías y cuentas"><i class="bi bi-shuffle"></i> Intercambio</span>`;
         } else {
-          grupoBadge = `<span class="split-badge" style="background:#e0ffe0;color:#1fe21f;" title="Movimiento dividido"><i class="bi bi-distribute-horizontal"></i> Dividido</span>`;
+          grupoBadge = `<span class="split-badge" style="background:#1fe21f;" title="Movimiento dividido"><i class="bi bi-distribute-horizontal"></i> Dividido</span>`;
         }
       }
       pill.innerHTML = `
@@ -1764,13 +1764,13 @@
       let tipoLabel = 'Grupo', tipoClass = '', tipoBadgeStyle = '';
       if (grupoId.startsWith('split_')) {
         tipoLabel = 'Dividido'; tipoClass = 'tipo-dividido';
-        tipoBadgeStyle = 'background:#e0ffe0;color:#1fe21f;';
+        tipoBadgeStyle = 'background:#1fe21f;';
       } else if (grupoId.startsWith('redondeo_')) {
         tipoLabel = 'Redondeo'; tipoClass = 'tipo-redondeo';
-        tipoBadgeStyle = 'background:#e0e0ff;color:#1f81e2;';
+        tipoBadgeStyle = 'background:#1f81e2;';
       } else if (grupoId.startsWith('intercambio_')) {
         tipoLabel = 'Intercambio'; tipoClass = 'tipo-intercambio';
-        tipoBadgeStyle = 'background:#f0e0ff;color:#845ec2;';
+        tipoBadgeStyle = 'background:#845ec2;';
       }
 
       wrapper.classList.add(tipoClass);
