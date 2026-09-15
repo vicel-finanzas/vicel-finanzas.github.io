@@ -262,7 +262,7 @@
     .movement-pill .movement-who .account-badge {
       background: #d4d0c0; border-radius: 30px; padding: 2px 14px;
       font-size: 12px; font-weight: 600; text-transform: uppercase;
-      white-space: nowrap;
+      white-space: nowrap; color: var(--color-oscuro);
     }
     .movement-pill .movement-who .split-badge {
       border-radius: 30px; padding: 2px 10px; font-size: 11px; font-weight: 600;
@@ -332,6 +332,11 @@
       padding: 12px 20px;
     }
     .movement-group-children .movement-pill:last-child { margin-bottom: 4px; }
+
+    /* Sub-movimientos de Intercambio: fondo morado un poco más oscuro que el padre */
+    .movement-group.tipo-intercambio .movement-group-children .movement-pill {
+      background: #e8d5f0;
+    }
 
     .loan-pill {
       background: var(--color-crema);
@@ -1515,7 +1520,6 @@
       });
     }
 
-    // ✅ FIX: Gradiente basado en saldo NETO por cuenta (positivos + negativos)
     function buildCategoryGradient(movsCategoria, accountsMap) {
       const byCuenta = {};
       movsCategoria.forEach(m => {
@@ -1709,27 +1713,28 @@
       });
     }
 
-    function buildMovementCard(m, catMap) {
+    function buildMovementCard(m, catMap, accountsMap) {
       const catName = catMap[m.categoriaId] || 'Sin categoría';
       const sign = m.monto >= 0 ? 'positive' : 'negative';
       const abs = Math.abs(m.monto).toFixed(2).replace('.', ',');
+      const accColor = m.cuenta ? (accountsMap[m.cuenta] || '#d4d0c0') : '#d4d0c0';
       const pill = document.createElement('div');
       pill.className = 'movement-pill';
       let grupoBadge = '';
       if (m.grupoId) {
         if (m.grupoId.startsWith('redondeo_')) {
-          grupoBadge = `<span class="split-badge" style="background:#e0e0ff;color:#0e61b3;" title="Redondeo entre categorías"><i class="bi bi-arrow-left-right"></i> Redondeo</span>`;
+          grupoBadge = `<span class="split-badge" style="background:#e0e0ff;color:#1f81e2;" title="Redondeo entre categorías"><i class="bi bi-arrow-left-right"></i> Redondeo</span>`;
         } else if (m.grupoId.startsWith('intercambio_')) {
           grupoBadge = `<span class="split-badge" style="background:#f0e0ff;color:#845ec2;" title="Intercambio entre categorías y cuentas"><i class="bi bi-shuffle"></i> Intercambio</span>`;
         } else {
-          grupoBadge = `<span class="split-badge" style="background:#e0ffe0;color:#0eb30e;" title="Movimiento dividido"><i class="bi bi-distribute-horizontal"></i> Dividido</span>`;
+          grupoBadge = `<span class="split-badge" style="background:#e0ffe0;color:#1fe21f;" title="Movimiento dividido"><i class="bi bi-distribute-horizontal"></i> Dividido</span>`;
         }
       }
       pill.innerHTML = `
         <div class="movement-header">
           <div class="movement-who">
             <span class="cat">${catName}</span>
-            ${m.cuenta ? `<span class="account-badge">${m.cuenta}</span>` : ''}
+            ${m.cuenta ? `<span class="account-badge" style="background:${accColor};">${m.cuenta}</span>` : ''}
             ${grupoBadge}
           </div>
           <span class="amount ${sign}">${m.monto >= 0 ? '+' : '-'}$${abs}</span>
@@ -1745,7 +1750,7 @@
       return pill;
     }
 
-    function buildMovementGroup(grupoId, movs, catMap) {
+    function buildMovementGroup(grupoId, movs, catMap, accountsMap) {
       const wrapper = document.createElement('div');
       wrapper.className = 'movement-group';
       wrapper.dataset.grupoId = grupoId;
@@ -1759,14 +1764,16 @@
       let tipoLabel = 'Grupo', tipoClass = '', tipoBadgeStyle = '';
       if (grupoId.startsWith('split_')) {
         tipoLabel = 'Dividido'; tipoClass = 'tipo-dividido';
-        tipoBadgeStyle = 'background:#e0ffe0;color:#0eb30e;';
+        tipoBadgeStyle = 'background:#e0ffe0;color:#1fe21f;';
       } else if (grupoId.startsWith('redondeo_')) {
         tipoLabel = 'Redondeo'; tipoClass = 'tipo-redondeo';
-        tipoBadgeStyle = 'background:#e0e0ff;color:#0e61b3;';
+        tipoBadgeStyle = 'background:#e0e0ff;color:#1f81e2;';
       } else if (grupoId.startsWith('intercambio_')) {
         tipoLabel = 'Intercambio'; tipoClass = 'tipo-intercambio';
         tipoBadgeStyle = 'background:#f0e0ff;color:#845ec2;';
       }
+
+      wrapper.classList.add(tipoClass);
 
       let amountStr, amountClass;
       if (grupoId.startsWith('redondeo_') || grupoId.startsWith('intercambio_')) {
@@ -1785,13 +1792,15 @@
       if (grupoId.startsWith('redondeo_')) tipoIcon = 'bi-arrow-left-right';
       else if (grupoId.startsWith('intercambio_')) tipoIcon = 'bi-shuffle';
 
+      const accColor = firstMov.cuenta ? (accountsMap[firstMov.cuenta] || '#d4d0c0') : '#d4d0c0';
+
       const parent = document.createElement('div');
       parent.className = `movement-pill group-parent ${tipoClass}`;
       parent.innerHTML = `
         <div class="movement-header">
           <div class="movement-who">
             <span class="cat">${catName}</span>
-            ${sameAccount && firstMov.cuenta ? `<span class="account-badge">${firstMov.cuenta}</span>` : ''}
+            ${sameAccount && firstMov.cuenta ? `<span class="account-badge" style="background:${accColor};">${firstMov.cuenta}</span>` : ''}
             <span class="split-badge" style="${tipoBadgeStyle}"><i class="bi ${tipoIcon}"></i> ${tipoLabel}</span>
           </div>
           <span class="amount ${amountClass}">${amountStr}</span>
@@ -1809,7 +1818,7 @@
 
       const children = document.createElement('div');
       children.className = 'movement-group-children';
-      for (const m of movs) children.appendChild(buildMovementCard(m, catMap));
+      for (const m of movs) children.appendChild(buildMovementCard(m, catMap, accountsMap));
       wrapper.appendChild(children);
       return wrapper;
     }
@@ -1878,6 +1887,10 @@
       const catMap = {};
       categories.forEach(c => catMap[c.id] = c.nombre);
 
+      const accounts = await db.accounts.toArray();
+      const accountsMap = {};
+      accounts.forEach(a => { accountsMap[a.nombre] = a.color || DEFAULT_ACCOUNT_COLOR; });
+
       const container = document.getElementById('movementsList');
       container.innerHTML = '';
       if (movements.length === 0) {
@@ -1909,13 +1922,13 @@
         });
         for (const entry of renderOrder) {
           if (entry.type === 'single') {
-            container.appendChild(buildMovementCard(entry.mov, catMap));
+            container.appendChild(buildMovementCard(entry.mov, catMap, accountsMap));
           } else {
             const movs = groupsMap[entry.id];
             if (movs.length === 1) {
-              container.appendChild(buildMovementCard(movs[0], catMap));
+              container.appendChild(buildMovementCard(movs[0], catMap, accountsMap));
             } else {
-              container.appendChild(buildMovementGroup(entry.id, movs, catMap));
+              container.appendChild(buildMovementGroup(entry.id, movs, catMap, accountsMap));
             }
           }
         }
