@@ -2388,9 +2388,11 @@
       if (goal.lograda) return 0;
       if (!goal.categoriaAnclaId) return goal.costoTotal;
       const movements = await db.movements.where('categoriaId').equals(goal.categoriaAnclaId).toArray();
-      const sum = movements.reduce((acc, m) => acc + (m.monto > 0 ? m.monto : 0), 0);
-      const remaining = goal.costoTotal - sum;
-      return remaining < 0 ? 0 : remaining;
+      const sum = movements.reduce((acc, m) => acc + m.monto, 0);
+      let remaining = goal.costoTotal - sum;
+      if (remaining < 0) remaining = 0;
+      if (remaining > goal.costoTotal) remaining = goal.costoTotal;
+      return remaining;
     }
     async function refreshGoals() {
       const goals = await db.goals.toArray();
