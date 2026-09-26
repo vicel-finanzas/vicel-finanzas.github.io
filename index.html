@@ -17,6 +17,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://accounts.google.com/gsi/client"></script>
   <style>
     :root {
@@ -241,7 +242,7 @@
       margin-bottom: 10px;
     }
     .person-total-card .btn-pdf {
-      background: var(--color-oscuro);
+      background: #25D366;
       color: #fff;
       border: none;
       border-radius: 30px;
@@ -256,8 +257,9 @@
       align-self: flex-start;
       font-family: 'Poppins', sans-serif;
     }
-    .person-total-card .btn-pdf:hover { background: var(--color-naranja); }
+    .person-total-card .btn-pdf:hover { background: #1eb658; }
     .person-total-card .btn-pdf:active { transform: scale(0.97); }
+    .person-total-card .btn-pdf:disabled { opacity: 0.6; cursor: wait; }
 
     .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-bottom: 25px; }
     .filter-grid .filter-item { display: flex; align-items: center; gap: 10px; }
@@ -384,7 +386,6 @@
     }
     .movement-group-children .movement-pill:last-child { margin-bottom: 4px; }
 
-    /* Fondo del desplegable según tipo */
     .movement-group.tipo-dividido .movement-group-children { background: #c8ebc0; }
     .movement-group.tipo-redondeo .movement-group-children { background: #b8d4eb; }
     .movement-group.tipo-intercambio .movement-group-children { background: #d4b8e0; }
@@ -593,98 +594,6 @@
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: var(--color-oscuro); }
     ::-webkit-scrollbar-thumb { background: var(--color-naranja); border-radius: 10px; }
-
-    /* ============ ESTILOS DE IMPRESIÓN / PDF ============ */
-    #loanPrintArea { display: none; }
-
-    @media print {
-      @page { margin: 1.5cm; }
-
-      html, body {
-        overflow: visible !important;
-        height: auto !important;
-        background: #fff !important;
-        color: #000 !important;
-      }
-      body > *:not(#loanPrintArea) {
-        display: none !important;
-      }
-      #loanPrintArea {
-        display: block !important;
-        font-family: 'Poppins', sans-serif;
-        color: #000;
-        background: #fff;
-        padding: 0;
-        margin: 0;
-      }
-      #loanPrintArea .print-header {
-        text-align: center;
-        padding-bottom: 14px;
-        border-bottom: 3px solid #e2781f;
-        margin-bottom: 20px;
-      }
-      #loanPrintArea .print-header img {
-        max-width: 170px;
-        height: auto;
-        margin-bottom: 6px;
-      }
-      #loanPrintArea .print-header h1 {
-        font-size: 22px;
-        margin: 6px 0 2px;
-        color: #201e1f;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-        font-weight: 700;
-      }
-      #loanPrintArea .print-header p {
-        margin: 2px 0;
-        font-size: 13px;
-        color: #666;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
-      #loanPrintArea .print-info {
-        margin-bottom: 18px;
-        font-size: 13px;
-        line-height: 1.7;
-      }
-      #loanPrintArea .print-info p { margin: 2px 0; }
-      #loanPrintArea .print-info strong { color: #201e1f; }
-      #loanPrintArea table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 8px;
-      }
-      #loanPrintArea th, #loanPrintArea td {
-        border: 1px solid #888;
-        padding: 8px 10px;
-        font-size: 12px;
-        text-align: left;
-        vertical-align: top;
-        color: #201e1f;
-      }
-      #loanPrintArea th {
-        background: #f2ede0;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-size: 11px;
-      }
-      #loanPrintArea tr.total-row td {
-        background: #fff7e0;
-        font-weight: 700;
-        font-size: 14px;
-        border-top: 3px solid #e2781f;
-        color: #201e1f;
-      }
-      #loanPrintArea .print-footer {
-        margin-top: 30px;
-        font-size: 10px;
-        color: #888;
-        text-align: center;
-        font-style: italic;
-      }
-    }
   </style></head>
 <body>
 
@@ -1168,9 +1077,6 @@
     </div>
   </div>
 
-  <!-- Área oculta que se usa para imprimir/exportar a PDF -->
-  <div id="loanPrintArea"></div>
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
@@ -1268,6 +1174,7 @@
     let showAllMovements = false;
     let sortableInstance = null;
     const expandedGroups = new Set();
+    let logoBase64Cache = null;
 
     const defaultCategories = ['Ocio', 'Pasaje', 'Comida', 'Alquiler', 'Aseo personal'];
     const DEFAULT_ACCOUNT_COLOR = '#888888';
@@ -2383,16 +2290,42 @@
             <div class="person-total">${escapeHtml(formatCurrency(info.total))}</div>
             <div class="person-count">${info.count} préstamo${info.count !== 1 ? 's' : ''} pendiente${info.count !== 1 ? 's' : ''}</div>
             <button class="btn-pdf" type="button">
-              <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+              <i class="bi bi-whatsapp"></i> Compartir PDF
             </button>
           </div>
         `;
-        col.querySelector('.btn-pdf').addEventListener('click', () => exportPersonPDF(name));
+        col.querySelector('.btn-pdf').addEventListener('click', function() {
+          exportPersonPDF(name, this);
+        });
         container.appendChild(col);
       }
     }
 
-    async function exportPersonPDF(personName) {
+    async function getLogoBase64() {
+      if (logoBase64Cache) return logoBase64Cache;
+      try {
+        const resp = await fetch('logo-vicel.png');
+        if (!resp.ok) return null;
+        const blob = await resp.blob();
+        logoBase64Cache = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        return logoBase64Cache;
+      } catch (e) {
+        console.warn('No se pudo cargar el logo para el PDF:', e);
+        return null;
+      }
+    }
+
+    async function exportPersonPDF(personName, btnEl) {
+      const originalBtnHtml = btnEl ? btnEl.innerHTML : null;
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando...';
+      }
       try {
         const pending = await db.loans.where('estado').equals('pendiente').toArray();
         const personLoans = pending.filter(l => l.persona === personName);
@@ -2410,68 +2343,184 @@
         categories.forEach(c => { catMap[c.id] = c.nombre; });
 
         const total = personLoans.reduce((s, l) => s + l.monto, 0);
-        const today = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+        const today = new Date();
+        const todayStr = today.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 
-        let rows = '';
+        // ==== CREAR PDF CON jsPDF ====
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+        let y = margin;
+
+        // Logo (si se pudo cargar)
+        const logo = await getLogoBase64();
+        if (logo) {
+          try {
+            const logoWidth = 55;
+            const logoHeight = logoWidth / (1200 / 520); // ratio original
+            doc.addImage(logo, 'PNG', (pageWidth - logoWidth) / 2, y, logoWidth, logoHeight);
+            y += logoHeight + 3;
+          } catch (e) { console.warn('Error al añadir logo:', e); }
+        }
+
+        // Título
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.setTextColor(32, 30, 31);
+        doc.text('ESTADO DE CUENTA', pageWidth / 2, y + 6, { align: 'center' });
+        y += 12;
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(120, 120, 120);
+        doc.text('PRÉSTAMOS PENDIENTES', pageWidth / 2, y, { align: 'center' });
+        y += 5;
+
+        // Línea naranja
+        doc.setDrawColor(226, 120, 31);
+        doc.setLineWidth(0.8);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 8;
+
+        // Info
+        doc.setTextColor(32, 30, 31);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Persona:', margin, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(personName, margin + 22, y);
+        y += 5.5;
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Fecha de emisión:', margin, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(todayStr, margin + 38, y);
+        y += 5.5;
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Cantidad de préstamos:', margin, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(personLoans.length), margin + 48, y);
+        y += 10;
+
+        // Coordenadas de columnas
+        const colFecha = margin + 2;
+        const colDesc = margin + 26;
+        const colCat = margin + 92;
+        const colCta = margin + 122;
+        const colMonto = pageWidth - margin - 2;
+
+        // Header de tabla
+        doc.setFillColor(242, 237, 224);
+        doc.rect(margin, y, pageWidth - margin * 2, 7, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(32, 30, 31);
+        doc.text('FECHA', colFecha, y + 4.7);
+        doc.text('DESCRIPCIÓN', colDesc, y + 4.7);
+        doc.text('CATEGORÍA', colCat, y + 4.7);
+        doc.text('CUENTA', colCta, y + 4.7);
+        doc.text('MONTO', colMonto, y + 4.7, { align: 'right' });
+        y += 7;
+
+        // Filas
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        const rowHeight = 6.5;
+
+        const truncar = (txt, max) => {
+          if (!txt) return '—';
+          const t = String(txt);
+          return t.length > max ? t.substring(0, max - 1) + '…' : t;
+        };
+
         for (const loan of personLoans) {
+          if (y + rowHeight > pageHeight - 30) {
+            doc.addPage();
+            y = margin;
+          }
           const dateObj = parseLocalDate(loan.fecha);
           const dateStr = dateObj.toLocaleDateString('es-ES');
           const mov = loan.movimientoCreacionId ? movMap[loan.movimientoCreacionId] : null;
           const catName = (mov && mov.categoriaId && catMap[mov.categoriaId]) ? catMap[mov.categoriaId] : '—';
           const cuenta = (mov && mov.cuenta) ? mov.cuenta : '—';
           const desc = loan.descripcion || ('Préstamo a ' + loan.persona);
-          rows += `
-            <tr>
-              <td>${escapeHtml(dateStr)}</td>
-              <td>${escapeHtml(desc)}</td>
-              <td>${escapeHtml(catName)}</td>
-              <td>${escapeHtml(cuenta)}</td>
-              <td style="text-align:right;">${escapeHtml(formatCurrency(loan.monto))}</td>
-            </tr>
-          `;
+
+          doc.setTextColor(32, 30, 31);
+          doc.text(dateStr, colFecha, y + 4.5);
+          doc.text(truncar(desc, 42), colDesc, y + 4.5);
+          doc.text(truncar(catName, 18), colCat, y + 4.5);
+          doc.text(truncar(cuenta, 16), colCta, y + 4.5);
+          doc.text(formatCurrency(loan.monto), colMonto, y + 4.5, { align: 'right' });
+
+          doc.setDrawColor(210, 210, 210);
+          doc.setLineWidth(0.1);
+          doc.line(margin, y + rowHeight, pageWidth - margin, y + rowHeight);
+          y += rowHeight;
         }
 
-        const printDiv = document.getElementById('loanPrintArea');
-        printDiv.innerHTML = `
-          <div class="print-header">
-            <img src="logo-vicel.png" alt="VICEL Finanzas" />
-            <h1>Estado de Cuenta</h1>
-            <p>Préstamos pendientes</p>
-          </div>
-          <div class="print-info">
-            <p><strong>Persona:</strong> ${escapeHtml(personName)}</p>
-            <p><strong>Fecha de emisión:</strong> ${escapeHtml(today)}</p>
-            <p><strong>Cantidad de préstamos:</strong> ${personLoans.length}</p>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th style="width:14%;">Fecha</th>
-                <th style="width:34%;">Descripción</th>
-                <th style="width:16%;">Categoría</th>
-                <th style="width:16%;">Cuenta</th>
-                <th style="width:20%; text-align:right;">Monto</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows}
-              <tr class="total-row">
-                <td colspan="4" style="text-align:right;">TOTAL PENDIENTE</td>
-                <td style="text-align:right;">${escapeHtml(formatCurrency(total))}</td>
-              </tr>
-            </tbody>
-          </table>
-          <p class="print-footer">
-            Documento generado por VICEL Finanzas · ${escapeHtml(today)}
-          </p>
-        `;
+        // Fila TOTAL
+        if (y + 10 > pageHeight - 25) { doc.addPage(); y = margin; }
+        doc.setFillColor(255, 247, 224);
+        doc.rect(margin, y, pageWidth - margin * 2, 9, 'F');
+        doc.setDrawColor(226, 120, 31);
+        doc.setLineWidth(0.6);
+        doc.line(margin, y, pageWidth - margin, y);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(32, 30, 31);
+        doc.text('TOTAL PENDIENTE', colMonto - 32, y + 6.5, { align: 'right' });
+        doc.text(formatCurrency(total), colMonto, y + 6.5, { align: 'right' });
 
-        // Pequeña espera para asegurar que el logo esté listo
-        await new Promise(r => setTimeout(r, 120));
-        window.print();
+        // Footer
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Documento generado por VICEL Finanzas · ' + todayStr, pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+        // ==== NOMBRE DEL ARCHIVO ====
+        const ymd = today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
+        const cleanName = personName.toUpperCase().replace(/[^A-ZÁÉÍÓÚÑ0-9]/g, '_');
+        const filename = `${ymd}_VICEL_PRÉSTAMO_${cleanName}_PDF.pdf`;
+
+        // ==== OBTENER BLOB Y COMPARTIR ====
+        const pdfBlob = doc.output('blob');
+        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+        // Intentar compartir por Web Share API (WhatsApp, Telegram, etc.)
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: `Estado de cuenta - ${personName}`,
+              text: `Estado de cuenta de préstamos pendientes de ${personName}`
+            });
+            return; // Compartido con éxito o el usuario cerró el menú
+          } catch (shareErr) {
+            if (shareErr.name === 'AbortError') return; // Usuario canceló
+            console.warn('Compartir no disponible, descargando en su lugar:', shareErr);
+          }
+        }
+
+        // Fallback: descargar el archivo con el nombre correcto
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+
       } catch (e) {
         console.error('Error al exportar PDF:', e);
-        alert('Error al generar el PDF. Intenta de nuevo.');
+        alert('Error al generar el PDF: ' + e.message);
+      } finally {
+        if (btnEl && originalBtnHtml !== null) {
+          btnEl.disabled = false;
+          btnEl.innerHTML = originalBtnHtml;
+        }
       }
     }
 
