@@ -208,6 +208,57 @@
     .btn-danger-custom:hover { background: #b02a37; color: #fff; }
     .warning-text { color: #fff7e0 !important; opacity: 0.85; }
 
+    /* Tarjetas de total por persona */
+    .person-total-card {
+      background: var(--color-crema);
+      border-radius: 28px;
+      padding: 18px 22px;
+      color: var(--color-oscuro);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      height: 100%;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    }
+    .person-total-card .person-name {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--color-naranja);
+      letter-spacing: 1.2px;
+    }
+    .person-total-card .person-total {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--color-oscuro);
+      line-height: 1.1;
+      word-break: break-word;
+    }
+    .person-total-card .person-count {
+      font-size: 12px;
+      color: #6c6b5e;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .person-total-card .btn-pdf {
+      background: var(--color-oscuro);
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      padding: 8px 18px;
+      font-weight: 600;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+      align-self: flex-start;
+      font-family: 'Poppins', sans-serif;
+    }
+    .person-total-card .btn-pdf:hover { background: var(--color-naranja); }
+    .person-total-card .btn-pdf:active { transform: scale(0.97); }
+
     .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-bottom: 25px; }
     .filter-grid .filter-item { display: flex; align-items: center; gap: 10px; }
     .filter-grid .filter-item label { color: #ccc; font-weight: 500; font-size: 14px; white-space: nowrap; margin: 0; }
@@ -469,6 +520,10 @@
       .category-pill .drag-handle { width: 42px; height: 42px; left: -52px; }
       .category-pill .drag-handle i { font-size: 18px; }
 
+      .person-total-card { padding: 14px 18px; border-radius: 24px; }
+      .person-total-card .person-total { font-size: 26px; }
+      .person-total-card .btn-pdf { font-size: 12px; padding: 6px 14px; }
+
       .movement-pill { padding: 14px 20px; border-radius: 28px; gap: 4px; }
       .movement-pill .movement-header { align-items: flex-start; gap: 8px; }
       .movement-pill .movement-who { gap: 8px; flex: 1; min-width: 0; }
@@ -538,6 +593,98 @@
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: var(--color-oscuro); }
     ::-webkit-scrollbar-thumb { background: var(--color-naranja); border-radius: 10px; }
+
+    /* ============ ESTILOS DE IMPRESIÓN / PDF ============ */
+    #loanPrintArea { display: none; }
+
+    @media print {
+      @page { margin: 1.5cm; }
+
+      html, body {
+        overflow: visible !important;
+        height: auto !important;
+        background: #fff !important;
+        color: #000 !important;
+      }
+      body > *:not(#loanPrintArea) {
+        display: none !important;
+      }
+      #loanPrintArea {
+        display: block !important;
+        font-family: 'Poppins', sans-serif;
+        color: #000;
+        background: #fff;
+        padding: 0;
+        margin: 0;
+      }
+      #loanPrintArea .print-header {
+        text-align: center;
+        padding-bottom: 14px;
+        border-bottom: 3px solid #e2781f;
+        margin-bottom: 20px;
+      }
+      #loanPrintArea .print-header img {
+        max-width: 170px;
+        height: auto;
+        margin-bottom: 6px;
+      }
+      #loanPrintArea .print-header h1 {
+        font-size: 22px;
+        margin: 6px 0 2px;
+        color: #201e1f;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+      #loanPrintArea .print-header p {
+        margin: 2px 0;
+        font-size: 13px;
+        color: #666;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      #loanPrintArea .print-info {
+        margin-bottom: 18px;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      #loanPrintArea .print-info p { margin: 2px 0; }
+      #loanPrintArea .print-info strong { color: #201e1f; }
+      #loanPrintArea table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      #loanPrintArea th, #loanPrintArea td {
+        border: 1px solid #888;
+        padding: 8px 10px;
+        font-size: 12px;
+        text-align: left;
+        vertical-align: top;
+        color: #201e1f;
+      }
+      #loanPrintArea th {
+        background: #f2ede0;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 11px;
+      }
+      #loanPrintArea tr.total-row td {
+        background: #fff7e0;
+        font-weight: 700;
+        font-size: 14px;
+        border-top: 3px solid #e2781f;
+        color: #201e1f;
+      }
+      #loanPrintArea .print-footer {
+        margin-top: 30px;
+        font-size: 10px;
+        color: #888;
+        text-align: center;
+        font-style: italic;
+      }
+    }
   </style></head>
 <body>
 
@@ -662,6 +809,12 @@
           <input type="text" id="loanSearchPerson" class="form-control" placeholder="Nombre de la persona..." />
         </div>
       </div>
+
+      <div class="mb-4">
+        <h5 class="text-white-50 text-uppercase fw-bold mb-3" style="letter-spacing: 1.5px;">Totales por persona</h5>
+        <div id="personTotalsList" class="row g-3"></div>
+      </div>
+
       <div class="row g-4">
         <div class="col-md-6">
           <h5 class="text-white-50 text-uppercase fw-bold mb-3">Pendientes</h5>
@@ -1014,6 +1167,10 @@
       </div>
     </div>
   </div>
+
+  <!-- Área oculta que se usa para imprimir/exportar a PDF -->
+  <div id="loanPrintArea"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
@@ -1134,6 +1291,9 @@
       const sign = value >= 0 ? '' : '-';
       const abs = Math.abs(value);
       return sign + abs.toFixed(2).replace('.', ',') + '$';
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
     const CLIENT_ID = '312694298965-j8kbfete84pqsfetfbms0hic84mukp6h.apps.googleusercontent.com';
@@ -1486,6 +1646,7 @@
       await refreshDashboard();
       await refreshMovements();
       await refreshLoans();
+      await refreshPersonTotals();
       await refreshGoals();
       await refreshCategoriesDropdown();
       await refreshCategoriesList();
@@ -2193,6 +2354,125 @@
       expandedGroups.add(grupoId);
       bootstrap.Modal.getInstance(document.getElementById('intercambioModal')).hide();
       await refreshAll(); scheduleSync();
+    }
+
+    async function refreshPersonTotals() {
+      const container = document.getElementById('personTotalsList');
+      if (!container) return;
+      const pending = await db.loans.where('estado').equals('pendiente').toArray();
+      const byPerson = {};
+      pending.forEach(l => {
+        const key = l.persona;
+        if (!byPerson[key]) byPerson[key] = { total: 0, count: 0 };
+        byPerson[key].total += l.monto;
+        byPerson[key].count++;
+      });
+      const names = Object.keys(byPerson).sort((a, b) => byPerson[b].total - byPerson[a].total);
+      container.innerHTML = '';
+      if (names.length === 0) {
+        container.innerHTML = '<div class="col-12"><p class="text-light-50 mb-0">No hay préstamos pendientes.</p></div>';
+        return;
+      }
+      for (const name of names) {
+        const info = byPerson[name];
+        const col = document.createElement('div');
+        col.className = 'col-md-6 col-lg-4';
+        col.innerHTML = `
+          <div class="person-total-card">
+            <div class="person-name">${escapeHtml(name)}</div>
+            <div class="person-total">${escapeHtml(formatCurrency(info.total))}</div>
+            <div class="person-count">${info.count} préstamo${info.count !== 1 ? 's' : ''} pendiente${info.count !== 1 ? 's' : ''}</div>
+            <button class="btn-pdf" type="button">
+              <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+            </button>
+          </div>
+        `;
+        col.querySelector('.btn-pdf').addEventListener('click', () => exportPersonPDF(name));
+        container.appendChild(col);
+      }
+    }
+
+    async function exportPersonPDF(personName) {
+      try {
+        const pending = await db.loans.where('estado').equals('pendiente').toArray();
+        const personLoans = pending.filter(l => l.persona === personName);
+        if (personLoans.length === 0) {
+          alert('No hay préstamos pendientes para ' + personName);
+          return;
+        }
+        personLoans.sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+        const movements = await db.movements.toArray();
+        const movMap = {};
+        movements.forEach(m => { movMap[m.id] = m; });
+        const categories = await db.categories.toArray();
+        const catMap = {};
+        categories.forEach(c => { catMap[c.id] = c.nombre; });
+
+        const total = personLoans.reduce((s, l) => s + l.monto, 0);
+        const today = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+
+        let rows = '';
+        for (const loan of personLoans) {
+          const dateObj = parseLocalDate(loan.fecha);
+          const dateStr = dateObj.toLocaleDateString('es-ES');
+          const mov = loan.movimientoCreacionId ? movMap[loan.movimientoCreacionId] : null;
+          const catName = (mov && mov.categoriaId && catMap[mov.categoriaId]) ? catMap[mov.categoriaId] : '—';
+          const cuenta = (mov && mov.cuenta) ? mov.cuenta : '—';
+          const desc = loan.descripcion || ('Préstamo a ' + loan.persona);
+          rows += `
+            <tr>
+              <td>${escapeHtml(dateStr)}</td>
+              <td>${escapeHtml(desc)}</td>
+              <td>${escapeHtml(catName)}</td>
+              <td>${escapeHtml(cuenta)}</td>
+              <td style="text-align:right;">${escapeHtml(formatCurrency(loan.monto))}</td>
+            </tr>
+          `;
+        }
+
+        const printDiv = document.getElementById('loanPrintArea');
+        printDiv.innerHTML = `
+          <div class="print-header">
+            <img src="logo-vicel.png" alt="VICEL Finanzas" />
+            <h1>Estado de Cuenta</h1>
+            <p>Préstamos pendientes</p>
+          </div>
+          <div class="print-info">
+            <p><strong>Persona:</strong> ${escapeHtml(personName)}</p>
+            <p><strong>Fecha de emisión:</strong> ${escapeHtml(today)}</p>
+            <p><strong>Cantidad de préstamos:</strong> ${personLoans.length}</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:14%;">Fecha</th>
+                <th style="width:34%;">Descripción</th>
+                <th style="width:16%;">Categoría</th>
+                <th style="width:16%;">Cuenta</th>
+                <th style="width:20%; text-align:right;">Monto</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+              <tr class="total-row">
+                <td colspan="4" style="text-align:right;">TOTAL PENDIENTE</td>
+                <td style="text-align:right;">${escapeHtml(formatCurrency(total))}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="print-footer">
+            Documento generado por VICEL Finanzas · ${escapeHtml(today)}
+          </p>
+        `;
+
+        // Pequeña espera para asegurar que el logo esté listo
+        await new Promise(r => setTimeout(r, 120));
+        window.print();
+      } catch (e) {
+        console.error('Error al exportar PDF:', e);
+        alert('Error al generar el PDF. Intenta de nuevo.');
+      }
     }
 
     async function refreshLoans() {
