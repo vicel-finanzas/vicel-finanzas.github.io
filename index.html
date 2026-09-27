@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#e2781f" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="VICEL" />
@@ -209,7 +210,6 @@
     .btn-danger-custom:hover { background: #b02a37; color: #fff; }
     .warning-text { color: #fff7e0 !important; opacity: 0.85; }
 
-    /* Tarjetas de total por persona */
     .person-total-card {
       background: var(--color-crema);
       border-radius: 28px;
@@ -2327,6 +2327,12 @@
         btnEl.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando...';
       }
       try {
+        // 1) Verificar que jsPDF esté listo
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+          throw new Error('La librería PDF aún se está cargando. Espera 5 segundos y vuelve a intentar.');
+        }
+
+        // 2) Recopilar datos
         const pending = await db.loans.where('estado').equals('pendiente').toArray();
         const personLoans = pending.filter(l => l.persona === personName);
         if (personLoans.length === 0) {
@@ -2338,15 +2344,12 @@
         const movements = await db.movements.toArray();
         const movMap = {};
         movements.forEach(m => { movMap[m.id] = m; });
-        const categories = await db.categories.toArray();
-        const catMap = {};
-        categories.forEach(c => { catMap[c.id] = c.nombre; });
 
         const total = personLoans.reduce((s, l) => s + l.monto, 0);
         const today = new Date();
         const todayStr = today.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 
-        // ==== CREAR PDF CON jsPDF ====
+        // 3) Crear PDF
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -2354,12 +2357,12 @@
         const margin = 15;
         let y = margin;
 
-        // Logo (si se pudo cargar)
+        // Logo
         const logo = await getLogoBase64();
         if (logo) {
           try {
             const logoWidth = 55;
-            const logoHeight = logoWidth / (1200 / 520); // ratio original
+            const logoHeight = logoWidth / (1200 / 520);
             doc.addImage(logo, 'PNG', (pageWidth - logoWidth) / 2, y, logoWidth, logoHeight);
             y += logoHeight + 3;
           } catch (e) { console.warn('Error al añadir logo:', e); }
@@ -2404,11 +2407,10 @@
         doc.text(String(personLoans.length), margin + 48, y);
         y += 10;
 
-        // Coordenadas de columnas
+        // Columnas SIN categoría
         const colFecha = margin + 2;
-        const colDesc = margin + 26;
-        const colCat = margin + 92;
-        const colCta = margin + 122;
+        const colDesc = margin + 30;
+        const colCta = margin + 138;
         const colMonto = pageWidth - margin - 2;
 
         // Header de tabla
@@ -2419,12 +2421,10 @@
         doc.setTextColor(32, 30, 31);
         doc.text('FECHA', colFecha, y + 4.7);
         doc.text('DESCRIPCIÓN', colDesc, y + 4.7);
-        doc.text('CATEGORÍA', colCat, y + 4.7);
         doc.text('CUENTA', colCta, y + 4.7);
         doc.text('MONTO', colMonto, y + 4.7, { align: 'right' });
         y += 7;
 
-        // Filas
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8.5);
         const rowHeight = 6.5;
@@ -2443,15 +2443,13 @@
           const dateObj = parseLocalDate(loan.fecha);
           const dateStr = dateObj.toLocaleDateString('es-ES');
           const mov = loan.movimientoCreacionId ? movMap[loan.movimientoCreacionId] : null;
-          const catName = (mov && mov.categoriaId && catMap[mov.categoriaId]) ? catMap[mov.categoriaId] : '—';
           const cuenta = (mov && mov.cuenta) ? mov.cuenta : '—';
           const desc = loan.descripcion || ('Préstamo a ' + loan.persona);
 
           doc.setTextColor(32, 30, 31);
           doc.text(dateStr, colFecha, y + 4.5);
-          doc.text(truncar(desc, 42), colDesc, y + 4.5);
-          doc.text(truncar(catName, 18), colCat, y + 4.5);
-          doc.text(truncar(cuenta, 16), colCta, y + 4.5);
+          doc.text(truncar(desc, 68), colDesc, y + 4.5);
+          doc.text(truncar(cuenta, 20), colCta, y + 4.5);
           doc.text(formatCurrency(loan.monto), colMonto, y + 4.5, { align: 'right' });
 
           doc.setDrawColor(210, 210, 210);
@@ -2479,43 +2477,47 @@
         doc.setTextColor(150, 150, 150);
         doc.text('Documento generado por VICEL Finanzas · ' + todayStr, pageWidth / 2, pageHeight - 10, { align: 'center' });
 
-        // ==== NOMBRE DEL ARCHIVO ====
+        // 4) Nombre del archivo
         const ymd = today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
         const cleanName = personName.toUpperCase().replace(/[^A-ZÁÉÍÓÚÑ0-9]/g, '_');
         const filename = `${ymd}_VICEL_PRÉSTAMO_${cleanName}_PDF.pdf`;
 
-        // ==== OBTENER BLOB Y COMPARTIR ====
         const pdfBlob = doc.output('blob');
         const file = new File([pdfBlob], filename, { type: 'application/pdf' });
 
-        // Intentar compartir por Web Share API (WhatsApp, Telegram, etc.)
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        // 5) Detectar móvil. Solo en móvil intentamos compartir con el menú nativo.
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        if (isMobileDevice && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({
               files: [file],
               title: `Estado de cuenta - ${personName}`,
               text: `Estado de cuenta de préstamos pendientes de ${personName}`
             });
-            return; // Compartido con éxito o el usuario cerró el menú
+            return; // se compartió (o el usuario canceló) — no descargamos
           } catch (shareErr) {
-            if (shareErr.name === 'AbortError') return; // Usuario canceló
-            console.warn('Compartir no disponible, descargando en su lugar:', shareErr);
+            if (shareErr && shareErr.name === 'AbortError') return; // el usuario canceló, no hacemos nada
+            console.warn('No se pudo compartir, se descargará el archivo:', shareErr);
           }
         }
 
-        // Fallback: descargar el archivo con el nombre correcto
+        // 6) Descargar (funciona en PC y también en móvil si falla el compartir)
         const url = URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
+        a.style.display = 'none';
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 1500);
 
       } catch (e) {
         console.error('Error al exportar PDF:', e);
-        alert('Error al generar el PDF: ' + e.message);
+        alert('Error al generar el PDF: ' + (e && e.message ? e.message : e));
       } finally {
         if (btnEl && originalBtnHtml !== null) {
           btnEl.disabled = false;
