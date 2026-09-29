@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vicel-finanzas-v18';
+const CACHE_NAME = 'vicel-finanzas-v19';
 const urlsToCache = [
   './',
   './index.html',
@@ -45,6 +45,12 @@ self.addEventListener('fetch', event => {
   if (url.hostname.includes('googleapis.com') ||
       url.hostname.includes('accounts.google.com') ||
       url.hostname === 'www.google.com') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // No cachear el script de analytics (para que siempre traiga la versión más reciente)
+  if (url.pathname.endsWith('/analytics.js')) {
     event.respondWith(fetch(event.request));
     return;
   }
