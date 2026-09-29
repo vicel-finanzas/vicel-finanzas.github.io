@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vicel-finanzas-v19';
+const CACHE_NAME = 'vicel-finanzas-v20';
 const urlsToCache = [
   './',
   './index.html',
@@ -41,7 +41,6 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Network-only para Google (APIs y Auth)
   if (url.hostname.includes('googleapis.com') ||
       url.hostname.includes('accounts.google.com') ||
       url.hostname === 'www.google.com') {
@@ -49,13 +48,11 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // No cachear el script de analytics (para que siempre traiga la versión más reciente)
   if (url.pathname.endsWith('/analytics.js')) {
     event.respondWith(fetch(event.request));
     return;
   }
 
-  // Cache-first para todo lo demás
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;

@@ -2327,12 +2327,9 @@
         btnEl.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando...';
       }
       try {
-        // 1) Verificar que jsPDF esté listo
         if (!window.jspdf || !window.jspdf.jsPDF) {
           throw new Error('La librería PDF aún se está cargando. Espera 5 segundos y vuelve a intentar.');
         }
-
-        // 2) Recopilar datos
         const pending = await db.loans.where('estado').equals('pendiente').toArray();
         const personLoans = pending.filter(l => l.persona === personName);
         if (personLoans.length === 0) {
@@ -2340,24 +2337,18 @@
           return;
         }
         personLoans.sort((a, b) => a.fecha.localeCompare(b.fecha));
-
         const movements = await db.movements.toArray();
         const movMap = {};
         movements.forEach(m => { movMap[m.id] = m; });
-
         const total = personLoans.reduce((s, l) => s + l.monto, 0);
         const today = new Date();
         const todayStr = today.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-
-        // 3) Crear PDF
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 15;
         let y = margin;
-
-        // Logo
         const logo = await getLogoBase64();
         if (logo) {
           try {
@@ -2367,8 +2358,6 @@
             y += logoHeight + 3;
           } catch (e) { console.warn('Error al añadir logo:', e); }
         }
-
-        // Título
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(16);
         doc.setTextColor(32, 30, 31);
@@ -2379,14 +2368,10 @@
         doc.setTextColor(120, 120, 120);
         doc.text('PRÉSTAMOS PENDIENTES', pageWidth / 2, y, { align: 'center' });
         y += 5;
-
-        // Línea naranja
         doc.setDrawColor(226, 120, 31);
         doc.setLineWidth(0.8);
         doc.line(margin, y, pageWidth - margin, y);
         y += 8;
-
-        // Info
         doc.setTextColor(32, 30, 31);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
@@ -2394,26 +2379,20 @@
         doc.setFont('helvetica', 'normal');
         doc.text(personName, margin + 22, y);
         y += 5.5;
-
         doc.setFont('helvetica', 'bold');
         doc.text('Fecha de emisión:', margin, y);
         doc.setFont('helvetica', 'normal');
         doc.text(todayStr, margin + 38, y);
         y += 5.5;
-
         doc.setFont('helvetica', 'bold');
         doc.text('Cantidad de préstamos:', margin, y);
         doc.setFont('helvetica', 'normal');
         doc.text(String(personLoans.length), margin + 48, y);
         y += 10;
-
-        // Columnas SIN categoría
         const colFecha = margin + 2;
         const colDesc = margin + 30;
         const colCta = margin + 138;
         const colMonto = pageWidth - margin - 2;
-
-        // Header de tabla
         doc.setFillColor(242, 237, 224);
         doc.rect(margin, y, pageWidth - margin * 2, 7, 'F');
         doc.setFont('helvetica', 'bold');
@@ -2424,41 +2403,31 @@
         doc.text('CUENTA', colCta, y + 4.7);
         doc.text('MONTO', colMonto, y + 4.7, { align: 'right' });
         y += 7;
-
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8.5);
         const rowHeight = 6.5;
-
         const truncar = (txt, max) => {
           if (!txt) return '—';
           const t = String(txt);
           return t.length > max ? t.substring(0, max - 1) + '…' : t;
         };
-
         for (const loan of personLoans) {
-          if (y + rowHeight > pageHeight - 30) {
-            doc.addPage();
-            y = margin;
-          }
+          if (y + rowHeight > pageHeight - 30) { doc.addPage(); y = margin; }
           const dateObj = parseLocalDate(loan.fecha);
           const dateStr = dateObj.toLocaleDateString('es-ES');
           const mov = loan.movimientoCreacionId ? movMap[loan.movimientoCreacionId] : null;
           const cuenta = (mov && mov.cuenta) ? mov.cuenta : '—';
           const desc = loan.descripcion || ('Préstamo a ' + loan.persona);
-
           doc.setTextColor(32, 30, 31);
           doc.text(dateStr, colFecha, y + 4.5);
           doc.text(truncar(desc, 68), colDesc, y + 4.5);
           doc.text(truncar(cuenta, 20), colCta, y + 4.5);
           doc.text(formatCurrency(loan.monto), colMonto, y + 4.5, { align: 'right' });
-
           doc.setDrawColor(210, 210, 210);
           doc.setLineWidth(0.1);
           doc.line(margin, y + rowHeight, pageWidth - margin, y + rowHeight);
           y += rowHeight;
         }
-
-        // Fila TOTAL
         if (y + 10 > pageHeight - 25) { doc.addPage(); y = margin; }
         doc.setFillColor(255, 247, 224);
         doc.rect(margin, y, pageWidth - margin * 2, 9, 'F');
@@ -2470,24 +2439,16 @@
         doc.setTextColor(32, 30, 31);
         doc.text('TOTAL PENDIENTE', colMonto - 32, y + 6.5, { align: 'right' });
         doc.text(formatCurrency(total), colMonto, y + 6.5, { align: 'right' });
-
-        // Footer
         doc.setFont('helvetica', 'italic');
         doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
         doc.text('Documento generado por VICEL Finanzas · ' + todayStr, pageWidth / 2, pageHeight - 10, { align: 'center' });
-
-        // 4) Nombre del archivo
         const ymd = today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
         const cleanName = personName.toUpperCase().replace(/[^A-ZÁÉÍÓÚÑ0-9]/g, '_');
         const filename = `${ymd}_VICEL_PRÉSTAMO_${cleanName}_PDF.pdf`;
-
         const pdfBlob = doc.output('blob');
         const file = new File([pdfBlob], filename, { type: 'application/pdf' });
-
-        // 5) Detectar móvil. Solo en móvil intentamos compartir con el menú nativo.
         const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
         if (isMobileDevice && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({
@@ -2495,14 +2456,12 @@
               title: `Estado de cuenta - ${personName}`,
               text: `Estado de cuenta de préstamos pendientes de ${personName}`
             });
-            return; // se compartió (o el usuario canceló) — no descargamos
+            return;
           } catch (shareErr) {
-            if (shareErr && shareErr.name === 'AbortError') return; // el usuario canceló, no hacemos nada
+            if (shareErr && shareErr.name === 'AbortError') return;
             console.warn('No se pudo compartir, se descargará el archivo:', shareErr);
           }
         }
-
-        // 6) Descargar (funciona en PC y también en móvil si falla el compartir)
         const url = URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = url;
@@ -2514,7 +2473,6 @@
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
         }, 1500);
-
       } catch (e) {
         console.error('Error al exportar PDF:', e);
         alert('Error al generar el PDF: ' + (e && e.message ? e.message : e));
@@ -3018,7 +2976,7 @@
     }
   </script>
 
-  <script src="https://panconhuevoo.github.io/vicel-analytics/analytics.js"></script>
+  <script src="https://vicel-gd.github.io/vicel-analytics/analytics.js"></script>
 
   <script>
     if ('serviceWorker' in navigator) {
