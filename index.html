@@ -528,10 +528,11 @@
     }
     .csel-btn .csel-amount {
       font-weight: 700;
-      color: var(--color-naranja-hover);
       white-space: nowrap;
       flex-shrink: 0;
     }
+    .csel-btn .csel-amount.positive { color: var(--color-oscuro); }
+    .csel-btn .csel-amount.negative { color: var(--color-naranja-hover); }
     .csel-btn > i {
       color: #6c6b5e;
       transition: transform 0.2s;
@@ -583,10 +584,11 @@
     }
     .csel-opt .csel-amount {
       font-weight: 700;
-      color: var(--color-naranja-hover);
       white-space: nowrap;
       flex-shrink: 0;
     }
+    .csel-opt .csel-amount.positive { color: var(--color-oscuro); }
+    .csel-opt .csel-amount.negative { color: var(--color-naranja-hover); }
 
     .menu-toggle {
       display: none; background: var(--color-naranja); border: none; color: #fff;
@@ -1331,10 +1333,17 @@
     /* ================== CUSTOM SELECT PARA CATEGORÍAS ================== */
 
     function splitCategoryText(text) {
-      if (!text) return { name: '', amount: '' };
+      if (!text) return { name: '', amount: '', isNegative: false };
       const m = String(text).match(/^(.*?)\s+—\s+(.+)$/);
-      if (m) return { name: m[1].trim(), amount: m[2].trim() };
-      return { name: String(text).trim(), amount: '' };
+      if (m) {
+        const amount = m[2].trim();
+        return {
+          name: m[1].trim(),
+          amount: amount,
+          isNegative: amount.startsWith('-')
+        };
+      }
+      return { name: String(text).trim(), amount: '', isNegative: false };
     }
 
     function enhanceCategorySelect(select) {
@@ -1373,7 +1382,6 @@
             renderCselOptions(select);
             panel.classList.add('open');
             btn.classList.add('open');
-            // Si el panel se sale por abajo, lo movemos arriba
             panel.style.top = 'calc(100% + 4px)';
             panel.style.bottom = 'auto';
             const rect = panel.getBoundingClientRect();
@@ -1407,11 +1415,13 @@
       if (!opt) {
         nameEl.textContent = '';
         amountEl.textContent = '';
+        amountEl.className = 'csel-amount';
         return;
       }
       const parts = splitCategoryText(opt.textContent);
       nameEl.textContent = parts.name;
       amountEl.textContent = parts.amount || '';
+      amountEl.className = 'csel-amount ' + (parts.isNegative ? 'negative' : 'positive');
     }
 
     function renderCselOptions(select) {
@@ -1433,7 +1443,7 @@
 
         if (parts.amount) {
           const amountSpan = document.createElement('span');
-          amountSpan.className = 'csel-amount';
+          amountSpan.className = 'csel-amount ' + (parts.isNegative ? 'negative' : 'positive');
           amountSpan.textContent = parts.amount;
           row.appendChild(amountSpan);
         }
@@ -1452,7 +1462,6 @@
       });
     }
 
-    // Cerrar paneles cuando se cierra un modal (por seguridad)
     document.addEventListener('hidden.bs.modal', () => {
       document.querySelectorAll('.csel-panel.open').forEach(p => p.classList.remove('open'));
       document.querySelectorAll('.csel-btn.open').forEach(b => b.classList.remove('open'));
@@ -3073,7 +3082,6 @@
       });
       enhanceCategorySelect(select);
 
-      // goalCategory (Meta) NO lleva saldos, se deja nativo
       const goalSelect = document.getElementById('goalCategory');
       if (goalSelect) {
         goalSelect.innerHTML = '<option value="">Ninguna</option>';
