@@ -485,6 +485,19 @@
     .form-control-color { width: 60px; height: 42px; padding: 4px; border-radius: 30px; cursor: pointer; }
     .form-check-label { font-weight: 500; }
 
+    .category-balance-hint {
+      font-size: 12px;
+      color: #6c6b5e;
+      margin-top: 6px;
+      padding-left: 18px;
+      font-weight: 500;
+      min-height: 16px;
+      transition: color 0.2s;
+    }
+    .category-balance-hint strong { color: var(--color-naranja-hover); font-weight: 700; }
+    .category-balance-hint.positive strong { color: #155724; }
+    .category-balance-hint.negative strong { color: var(--color-naranja-hover); }
+
     .menu-toggle {
       display: none; background: var(--color-naranja); border: none; color: #fff;
       font-size: 28px; padding: 6px 14px; border-radius: 30px; margin-bottom: 15px;
@@ -791,7 +804,11 @@
           <form id="movementForm">
             <input type="hidden" id="editMovementId" />
             <div class="mb-3"><label>Fecha</label><input type="date" id="movementDate" class="form-control" required /></div>
-            <div class="mb-3"><label>Categoría</label><select id="movementCategory" class="form-select" required></select></div>
+            <div class="mb-3">
+              <label>Categoría</label>
+              <select id="movementCategory" class="form-select" required></select>
+              <div id="movementCategoryHint" class="category-balance-hint"></div>
+            </div>
             <div class="mb-3"><label>Monto</label><input type="number" id="movementAmount" class="form-control" step="0.01" required /></div>
             <div class="mb-3">
               <label>Tipo</label>
@@ -1175,6 +1192,7 @@
     let sortableInstance = null;
     const expandedGroups = new Set();
     let logoBase64Cache = null;
+    let categoryBalancesCache = {};
 
     const defaultCategories = ['Ocio', 'Pasaje', 'Comida', 'Alquiler', 'Aseo personal'];
     const DEFAULT_ACCOUNT_COLOR = '#888888';
@@ -1201,6 +1219,23 @@
     }
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    async function getCategoryBalancesMap() {
+      const movements = await db.movements.toArray();
+      const map = {};
+      movements.forEach(m => {
+        if (m.categoriaId) {
+          map[m.categoriaId] = (map[m.categoriaId] || 0) + m.monto;
+        }
+      });
+      categoryBalancesCache = map;
+      return map;
+    }
+
+    function categoryOptionText(cat, balancesMap) {
+      const bal = balancesMap[cat.id] || 0;
+      return `${cat.nombre} — ${formatCurrency(bal)}`;
     }
 
     const CLIENT_ID = '312694298965-j8kbfete84pqsfetfbms0hic84mukp6h.apps.googleusercontent.com';
@@ -1397,6 +1432,9 @@
         const loanSearchInput = document.getElementById('loanSearchPerson');
         if (loanSearchInput) loanSearchInput.addEventListener('input', refreshLoans);
 
+        const movCatSel = document.getElementById('movementCategory');
+        if (movCatSel) movCatSel.addEventListener('change', updateMovementCategoryHint);
+
         document.getElementById('menuToggle').addEventListener('click', () => {
           document.getElementById('sidebar').classList.toggle('open');
           document.getElementById('sidebarOverlay').classList.toggle('active');
@@ -1430,6 +1468,18 @@
         alert('Error al inicializar la aplicación.');
       }
     });
+
+    function updateMovementCategoryHint() {
+      const hint = document.getElementById('movementCategoryHint');
+      const sel = document.getElementById('movementCategory');
+      if (!hint || !sel) return;
+      const catId = parseInt(sel.value);
+      if (!catId) { hint.textContent = ''; hint.className = 'category-balance-hint'; return; }
+      const bal = categoryBalancesCache[catId] || 0;
+      const cls = bal >= 0 ? 'positive' : 'negative';
+      hint.className = `category-balance-hint ${cls}`;
+      hint.innerHTML = `Saldo actual: <strong>${formatCurrency(bal)}</strong>`;
+    }
 
     async function loadDefaultData() {
       const catCount = await db.categories.count();
@@ -2066,6 +2116,7 @@
       else document.getElementById('typeEgreso').checked = true;
       await refreshCategoriesDropdown();
       document.getElementById('movementCategory').value = m.categoriaId || '';
+      updateMovementCategoryHint();
       await refreshAccountsDropdown('movementAccount');
       document.getElementById('movementAccount').value = m.cuenta || '';
       new bootstrap.Modal(document.getElementById('movementModal')).show();
@@ -2116,11 +2167,12 @@
       container.appendChild(div);
       const categories = await db.categories.toArray();
       const visibles = categories.filter(c => !c.oculta).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      const balancesMap = await getCategoryBalancesMap();
       const select = div.querySelector('.split-line-category');
       select.innerHTML = '<option value="">Seleccionar categoría</option>';
       visibles.forEach(c => {
         const opt = document.createElement('option');
-        opt.value = c.id; opt.textContent = c.nombre;
+        opt.value = c.id; opt.textContent = categoryOptionText(c, balancesMap);
         select.appendChild(opt);
       });
       updateSplitTotals();
@@ -2182,12 +2234,13 @@
     async function refreshRedondeoCategoryDropdowns() {
       const categories = await db.categories.toArray();
       const visibles = categories.filter(c => !c.oculta).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      const balancesMap = await getCategoryBalancesMap();
       ['redondeoCategoriaOrigen', 'redondeoCategoriaDestino'].forEach(selectId => {
         const select = document.getElementById(selectId);
         select.innerHTML = '';
         visibles.forEach(c => {
           const opt = document.createElement('option');
-          opt.value = c.id; opt.textContent = c.nombre;
+          opt.value = c.id; opt.textContent = categoryOptionText(c, balancesMap);
           select.appendChild(opt);
         });
       });
@@ -2215,12 +2268,13 @@
     async function refreshIntercambioDropdowns() {
       const categories = await db.categories.toArray();
       const visibles = categories.filter(c => !c.oculta).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      const balancesMap = await getCategoryBalancesMap();
       ['intercambioCatA', 'intercambioCatB'].forEach(selectId => {
         const select = document.getElementById(selectId);
         select.innerHTML = '';
         visibles.forEach(c => {
           const opt = document.createElement('option');
-          opt.value = c.id; opt.textContent = c.nombre;
+          opt.value = c.id; opt.textContent = categoryOptionText(c, balancesMap);
           select.appendChild(opt);
         });
       });
@@ -2552,11 +2606,12 @@
     async function refreshCategoriesDropdownForLoan() {
       const categories = await db.categories.toArray();
       const visibles = categories.filter(c => !c.oculta).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      const balancesMap = await getCategoryBalancesMap();
       const select = document.getElementById('loanCategory');
       select.innerHTML = '<option value="" disabled selected>Seleccionar categoría</option>';
       visibles.forEach(c => {
         const opt = document.createElement('option');
-        opt.value = c.id; opt.textContent = c.nombre;
+        opt.value = c.id; opt.textContent = categoryOptionText(c, balancesMap);
         select.appendChild(opt);
       });
     }
@@ -2799,11 +2854,12 @@
     async function refreshCategoriesDropdown() {
       const categories = await db.categories.toArray();
       const visibles = categories.filter(c => !c.oculta).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      const balancesMap = await getCategoryBalancesMap();
       const select = document.getElementById('movementCategory');
       select.innerHTML = '';
       visibles.forEach(c => {
         const opt = document.createElement('option');
-        opt.value = c.id; opt.textContent = c.nombre;
+        opt.value = c.id; opt.textContent = categoryOptionText(c, balancesMap);
         select.appendChild(opt);
       });
       const goalSelect = document.getElementById('goalCategory');
@@ -2815,6 +2871,7 @@
           goalSelect.appendChild(opt);
         });
       }
+      updateMovementCategoryHint();
     }
     function openAddCategory() {
       document.getElementById('categoryForm').reset();
