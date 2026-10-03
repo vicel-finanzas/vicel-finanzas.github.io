@@ -485,18 +485,108 @@
     .form-control-color { width: 60px; height: 42px; padding: 4px; border-radius: 30px; cursor: pointer; }
     .form-check-label { font-weight: 500; }
 
-    .category-balance-hint {
-      font-size: 12px;
-      color: #6c6b5e;
-      margin-top: 6px;
-      padding-left: 18px;
+    /* ================== CUSTOM SELECT (categorías) ================== */
+    .csel-wrap { position: relative; width: 100%; }
+    .csel-btn {
+      width: 100%;
+      background: #fffdf6;
+      border: 1px solid #d4d0c0;
+      border-radius: 60px;
+      padding: 10px 18px;
+      font-family: 'Poppins', sans-serif;
       font-weight: 500;
-      min-height: 16px;
-      transition: color 0.2s;
+      color: var(--color-oscuro);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      min-height: 46px;
+      text-align: left;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .category-balance-hint strong { color: var(--color-naranja-hover); font-weight: 700; }
-    .category-balance-hint.positive strong { color: #155724; }
-    .category-balance-hint.negative strong { color: var(--color-naranja-hover); }
+    .csel-btn:hover { border-color: #bfb8a0; }
+    .csel-btn.open,
+    .csel-btn:focus {
+      border-color: var(--color-naranja);
+      box-shadow: 0 0 0 3px rgba(232,98,44,0.3);
+      outline: none;
+    }
+    .csel-btn-content {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      min-width: 0;
+    }
+    .csel-btn .csel-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-transform: capitalize;
+    }
+    .csel-btn .csel-amount {
+      font-weight: 700;
+      color: var(--color-naranja-hover);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .csel-btn > i {
+      color: #6c6b5e;
+      transition: transform 0.2s;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+    .csel-btn.open > i { transform: rotate(180deg); }
+
+    .csel-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #fffdf6;
+      border: 1px solid #d4d0c0;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+      max-height: 280px;
+      overflow-y: auto;
+      z-index: 3000;
+      padding: 6px;
+    }
+    .csel-panel.open { display: block; }
+    .csel-opt {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      color: var(--color-oscuro);
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    .csel-opt:hover,
+    .csel-opt.selected { background: rgba(226,120,31,0.15); }
+    .csel-opt.disabled {
+      color: #b0ad9a;
+      cursor: not-allowed;
+      background: transparent !important;
+    }
+    .csel-opt .csel-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-transform: capitalize;
+    }
+    .csel-opt .csel-amount {
+      font-weight: 700;
+      color: var(--color-naranja-hover);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
 
     .menu-toggle {
       display: none; background: var(--color-naranja); border: none; color: #fff;
@@ -537,6 +627,9 @@
       .person-total-card { padding: 14px 18px; border-radius: 24px; }
       .person-total-card .person-total { font-size: 26px; }
       .person-total-card .btn-pdf { font-size: 12px; padding: 6px 14px; }
+
+      .csel-btn { padding: 8px 14px; min-height: 42px; font-size: 14px; }
+      .csel-opt { padding: 9px 12px; font-size: 14px; }
 
       .movement-pill { padding: 14px 20px; border-radius: 28px; gap: 4px; }
       .movement-pill .movement-header { align-items: flex-start; gap: 8px; }
@@ -807,7 +900,6 @@
             <div class="mb-3">
               <label>Categoría</label>
               <select id="movementCategory" class="form-select" required></select>
-              <div id="movementCategoryHint" class="category-balance-hint"></div>
             </div>
             <div class="mb-3"><label>Monto</label><input type="number" id="movementAmount" class="form-control" step="0.01" required /></div>
             <div class="mb-3">
@@ -1192,7 +1284,6 @@
     let sortableInstance = null;
     const expandedGroups = new Set();
     let logoBase64Cache = null;
-    let categoryBalancesCache = {};
 
     const defaultCategories = ['Ocio', 'Pasaje', 'Comida', 'Alquiler', 'Aseo personal'];
     const DEFAULT_ACCOUNT_COLOR = '#888888';
@@ -1229,7 +1320,6 @@
           map[m.categoriaId] = (map[m.categoriaId] || 0) + m.monto;
         }
       });
-      categoryBalancesCache = map;
       return map;
     }
 
@@ -1237,6 +1327,136 @@
       const bal = balancesMap[cat.id] || 0;
       return `${cat.nombre} — ${formatCurrency(bal)}`;
     }
+
+    /* ================== CUSTOM SELECT PARA CATEGORÍAS ================== */
+
+    function splitCategoryText(text) {
+      if (!text) return { name: '', amount: '' };
+      const m = String(text).match(/^(.*?)\s+—\s+(.+)$/);
+      if (m) return { name: m[1].trim(), amount: m[2].trim() };
+      return { name: String(text).trim(), amount: '' };
+    }
+
+    function enhanceCategorySelect(select) {
+      if (!select) return;
+      if (!select.dataset.enhanced) {
+        select.dataset.enhanced = '1';
+
+        const wrap = document.createElement('div');
+        wrap.className = 'csel-wrap';
+        select.parentNode.insertBefore(wrap, select);
+        wrap.appendChild(select);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'csel-btn';
+        btn.setAttribute('aria-haspopup', 'listbox');
+        btn.innerHTML = '<span class="csel-btn-content"><span class="csel-name"></span><span class="csel-amount"></span></span><i class="bi bi-chevron-down"></i>';
+        wrap.appendChild(btn);
+
+        const panel = document.createElement('div');
+        panel.className = 'csel-panel';
+        panel.setAttribute('role', 'listbox');
+        wrap.appendChild(panel);
+
+        select.style.display = 'none';
+        select._cselBtn = btn;
+        select._cselPanel = panel;
+        select._cselWrap = wrap;
+
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const wasOpen = panel.classList.contains('open');
+          document.querySelectorAll('.csel-panel.open').forEach(p => p.classList.remove('open'));
+          document.querySelectorAll('.csel-btn.open').forEach(b => b.classList.remove('open'));
+          if (!wasOpen) {
+            renderCselOptions(select);
+            panel.classList.add('open');
+            btn.classList.add('open');
+            // Si el panel se sale por abajo, lo movemos arriba
+            panel.style.top = 'calc(100% + 4px)';
+            panel.style.bottom = 'auto';
+            const rect = panel.getBoundingClientRect();
+            if (rect.bottom > window.innerHeight - 8) {
+              panel.style.top = 'auto';
+              panel.style.bottom = 'calc(100% + 4px)';
+            }
+          }
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!wrap.contains(e.target)) {
+            panel.classList.remove('open');
+            btn.classList.remove('open');
+          }
+        });
+
+        select.addEventListener('change', () => {
+          renderCselLabel(select);
+        });
+      }
+      renderCselLabel(select);
+    }
+
+    function renderCselLabel(select) {
+      const btn = select._cselBtn;
+      if (!btn) return;
+      const opt = select.options[select.selectedIndex];
+      const nameEl = btn.querySelector('.csel-name');
+      const amountEl = btn.querySelector('.csel-amount');
+      if (!opt) {
+        nameEl.textContent = '';
+        amountEl.textContent = '';
+        return;
+      }
+      const parts = splitCategoryText(opt.textContent);
+      nameEl.textContent = parts.name;
+      amountEl.textContent = parts.amount || '';
+    }
+
+    function renderCselOptions(select) {
+      const panel = select._cselPanel;
+      if (!panel) return;
+      panel.innerHTML = '';
+      Array.from(select.options).forEach(opt => {
+        const row = document.createElement('div');
+        row.className = 'csel-opt';
+        row.setAttribute('role', 'option');
+        if (opt.selected) row.classList.add('selected');
+        if (opt.disabled) row.classList.add('disabled');
+
+        const parts = splitCategoryText(opt.textContent);
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'csel-name';
+        nameSpan.textContent = parts.name;
+        row.appendChild(nameSpan);
+
+        if (parts.amount) {
+          const amountSpan = document.createElement('span');
+          amountSpan.className = 'csel-amount';
+          amountSpan.textContent = parts.amount;
+          row.appendChild(amountSpan);
+        }
+
+        if (!opt.disabled) {
+          row.addEventListener('click', (e) => {
+            e.stopPropagation();
+            select.value = opt.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            panel.classList.remove('open');
+            select._cselBtn.classList.remove('open');
+          });
+        }
+
+        panel.appendChild(row);
+      });
+    }
+
+    // Cerrar paneles cuando se cierra un modal (por seguridad)
+    document.addEventListener('hidden.bs.modal', () => {
+      document.querySelectorAll('.csel-panel.open').forEach(p => p.classList.remove('open'));
+      document.querySelectorAll('.csel-btn.open').forEach(b => b.classList.remove('open'));
+    });
 
     const CLIENT_ID = '312694298965-j8kbfete84pqsfetfbms0hic84mukp6h.apps.googleusercontent.com';
     const SCOPES = 'https://www.googleapis.com/auth/drive.file';
@@ -1432,9 +1652,6 @@
         const loanSearchInput = document.getElementById('loanSearchPerson');
         if (loanSearchInput) loanSearchInput.addEventListener('input', refreshLoans);
 
-        const movCatSel = document.getElementById('movementCategory');
-        if (movCatSel) movCatSel.addEventListener('change', updateMovementCategoryHint);
-
         document.getElementById('menuToggle').addEventListener('click', () => {
           document.getElementById('sidebar').classList.toggle('open');
           document.getElementById('sidebarOverlay').classList.toggle('active');
@@ -1468,18 +1685,6 @@
         alert('Error al inicializar la aplicación.');
       }
     });
-
-    function updateMovementCategoryHint() {
-      const hint = document.getElementById('movementCategoryHint');
-      const sel = document.getElementById('movementCategory');
-      if (!hint || !sel) return;
-      const catId = parseInt(sel.value);
-      if (!catId) { hint.textContent = ''; hint.className = 'category-balance-hint'; return; }
-      const bal = categoryBalancesCache[catId] || 0;
-      const cls = bal >= 0 ? 'positive' : 'negative';
-      hint.className = `category-balance-hint ${cls}`;
-      hint.innerHTML = `Saldo actual: <strong>${formatCurrency(bal)}</strong>`;
-    }
 
     async function loadDefaultData() {
       const catCount = await db.categories.count();
@@ -2116,7 +2321,7 @@
       else document.getElementById('typeEgreso').checked = true;
       await refreshCategoriesDropdown();
       document.getElementById('movementCategory').value = m.categoriaId || '';
-      updateMovementCategoryHint();
+      renderCselLabel(document.getElementById('movementCategory'));
       await refreshAccountsDropdown('movementAccount');
       document.getElementById('movementAccount').value = m.cuenta || '';
       new bootstrap.Modal(document.getElementById('movementModal')).show();
@@ -2175,6 +2380,7 @@
         opt.value = c.id; opt.textContent = categoryOptionText(c, balancesMap);
         select.appendChild(opt);
       });
+      enhanceCategorySelect(select);
       updateSplitTotals();
     }
     function removeSplitLine(id) {
@@ -2243,6 +2449,7 @@
           opt.value = c.id; opt.textContent = categoryOptionText(c, balancesMap);
           select.appendChild(opt);
         });
+        enhanceCategorySelect(select);
       });
     }
     async function saveRedondeo() {
@@ -2277,6 +2484,7 @@
           opt.value = c.id; opt.textContent = categoryOptionText(c, balancesMap);
           select.appendChild(opt);
         });
+        enhanceCategorySelect(select);
       });
       const accounts = await db.accounts.toArray();
       ['intercambioCuentaA', 'intercambioCuentaB'].forEach(selectId => {
@@ -2614,6 +2822,7 @@
         opt.value = c.id; opt.textContent = categoryOptionText(c, balancesMap);
         select.appendChild(opt);
       });
+      enhanceCategorySelect(select);
     }
     async function saveLoan() {
       const persona = document.getElementById('loanPerson').value.trim();
@@ -2862,6 +3071,9 @@
         opt.value = c.id; opt.textContent = categoryOptionText(c, balancesMap);
         select.appendChild(opt);
       });
+      enhanceCategorySelect(select);
+
+      // goalCategory (Meta) NO lleva saldos, se deja nativo
       const goalSelect = document.getElementById('goalCategory');
       if (goalSelect) {
         goalSelect.innerHTML = '<option value="">Ninguna</option>';
@@ -2871,7 +3083,6 @@
           goalSelect.appendChild(opt);
         });
       }
-      updateMovementCategoryHint();
     }
     function openAddCategory() {
       document.getElementById('categoryForm').reset();
