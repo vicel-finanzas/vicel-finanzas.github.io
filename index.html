@@ -1949,7 +1949,11 @@
         movements = movements.filter(m => m.fecha.startsWith(prefix));
       }
       if (filterSearch) movements = movements.filter(m => (m.descripcion || '').toLowerCase().includes(filterSearch));
-      movements.sort((a, b) => b.fecha.localeCompare(a.fecha));
+      movements.sort((a, b) => {
+        const cmpFecha = b.fecha.localeCompare(a.fecha);
+        if (cmpFecha !== 0) return cmpFecha;
+        return (b.id || 0) - (a.id || 0);
+      });
 
       const categories = await db.categories.toArray();
       const catMap = {};
